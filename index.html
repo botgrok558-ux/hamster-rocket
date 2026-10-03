@@ -23,6 +23,7 @@
   <a class="brand" href="#top"><img src="assets/logo_64.png" alt="" width="36" height="36"><span>Hamster Rocket</span></a>
   <nav id="nav-menu" aria-label="Main">
     <a href="#play">🎮 <span data-l="en">Game</span><span data-l="de">Spiel</span></a>
+    <a href="#wheel">🎡 <span data-l="en">Lucky Wheel</span><span data-l="de">Glücksrad</span></a>
     <a href="#about">🐹 <span data-l="en">About</span><span data-l="de">Über</span></a>
     <a class="btn btn-small btn-x nav-x-m" data-social="X_URL" href="#socials">𝕏 <span data-l="en">Follow</span><span data-l="de">Folgen</span></a>
   </nav>
@@ -41,7 +42,7 @@
       <p class="fun-note"><span data-l="en">🎈 Just a game for fun. No prizes, no rewards, no tokens to win.</span><span data-l="de">🎈 Nur ein Spiel zum Spaß. Keine Preise, keine Belohnungen, keine Tokens zu gewinnen.</span></p>
       <div class="cta">
         <a class="btn btn-primary" href="#play">🚀 <span data-l="en">Play the game</span><span data-l="de">Jetzt spielen</span></a>
-        <a class="btn btn-ghost" href="#about">🐹 <span data-l="en">About</span><span data-l="de">Über das Spiel</span></a>
+        <a class="btn btn-ghost" href="#wheel">🎡 <span data-l="en">Lucky Wheel</span><span data-l="de">Glücksrad</span></a>
       </div>
     </div>
   </section>
@@ -77,6 +78,8 @@
             <p class="keys" data-l="en"><span class="key">TAP</span> or <span class="key">SPACE</span> to spin<br><span class="key">◀</span> tap left / right <span class="key">▶</span> to steer</p>
             <p class="keys" data-l="de"><span class="key">TIPPEN</span> oder <span class="key">LEERTASTE</span><br><span class="key">◀</span> links / rechts lenken <span class="key">▶</span></p>
             <p id="start-best" class="muted small"></p>
+            <p id="start-bonus" class="start-bonus" hidden></p>
+            <a id="start-wheel" class="start-wheel" href="#wheel" hidden></a>
           </div>
         </div>
         <div class="hr-overlay hidden" id="hr-over">
@@ -87,6 +90,7 @@
             <p class="go-badge hidden" id="go-badge">NEW BEST!</p>
             <p class="small" id="go-stats"></p>
             <p class="small muted" id="go-best"></p>
+            <p class="go-bonus hidden" id="go-bonus"></p>
             <div class="go-buttons">
               <button class="btn btn-primary" id="go-again" type="button">↻ <span data-l="en">Fly again</span><span data-l="de">Nochmal</span></button>
               <button class="btn btn-x" id="go-share" type="button"><span data-l="en">Share on 𝕏</span><span data-l="de">Auf 𝕏 teilen</span></button>
@@ -101,6 +105,35 @@
       <h2><span data-l="en">Your scores</span><span data-l="de">Deine Punkte</span></h2>
       <p data-l="en">Your best scores are saved only on this device, in your browser. Nothing is sent anywhere. Beat your own record and challenge your friends.</p><p data-l="de">Deine Bestwerte werden nur auf diesem Gerät in deinem Browser gespeichert. Es wird nichts verschickt. Knack deinen eigenen Rekord und fordere deine Freunde heraus.</p>
       <p data-l="en" class="muted small">Free to play. No purchase needed.</p><p data-l="de" class="muted small">Kostenlos spielbar. Kein Kauf nötig.</p>
+    </div>
+  </section>
+
+  <section class="wheel-sec" id="wheel">
+    <div class="wheel-head">
+      <h2>🎡 <span data-l="en">Lucky Wheel</span><span data-l="de">Glücksrad</span></h2>
+      <div class="odds">
+        <button class="odds-btn" id="odds-btn" type="button" aria-expanded="false" aria-controls="odds-tip" data-i18n-attr="aria-label|Show chances|Chancen anzeigen" aria-label="Show chances">i</button>
+        <div class="odds-tip" id="odds-tip" role="tooltip" hidden><span data-l="en">Chances: 75% nothing, 25% bonus</span><span data-l="de">Chancen: 75 % nichts, 25 % Bonus</span></div>
+      </div>
+    </div>
+    <p class="muted"><span data-l="en">One free spin per day on this device. Win a small in-game bonus for your next run, or a fresh look for your hamster.</span><span data-l="de">Ein Gratis-Dreh pro Tag auf diesem Gerät. Gewinne einen kleinen Spiel-Bonus für deinen nächsten Flug oder einen neuen Look für deinen Hamster.</span> <span id="wheel-reset"></span></p>
+    <div class="wheel-grid">
+      <div class="wheel-col">
+        <div class="wheel-box" id="wheel-box">
+          <svg class="wheel-pointer" id="wheel-pointer" viewBox="0 0 40 50" aria-hidden="true"><path d="M5 4 H35 L20 45 Z" fill="#ff6b81" stroke="#170d33" stroke-width="4" stroke-linejoin="round"/><circle cx="20" cy="15" r="4.5" fill="#fff"/></svg>
+          <canvas id="wheel-canvas" width="400" height="400" role="img" aria-label="Lucky Wheel / Glücksrad"></canvas>
+          <button class="wheel-hub" id="wheel-hub" type="button" data-i18n-attr="aria-label|Spin the wheel|Glücksrad drehen" aria-label="Spin the wheel">SPIN</button>
+          <canvas class="wheel-fx" id="wheel-fx" aria-hidden="true"></canvas>
+        </div>
+        <p class="wheel-note"><span data-l="en">In-game bonuses only, no real prizes.</span><span data-l="de">Nur Spiel-Boni, keine echten Preise.</span></p>
+      </div>
+      <div class="wheel-side">
+        <button class="btn btn-primary wheel-go" id="wheel-go" type="button">🎡 Spin the wheel!</button>
+        <p class="wheel-count" id="wheel-count" aria-live="polite"></p>
+        <div class="wheel-result" id="wheel-result" aria-live="polite" hidden></div>
+        <ul class="wheel-legend" id="wheel-legend"></ul>
+        <p class="muted small" id="wheel-fair"></p>
+      </div>
     </div>
   </section>
 
@@ -131,6 +164,7 @@
 <script src="config.js"></script>
 <script src="sim.js"></script>
 <script src="main.js"></script>
+<script src="wheel.js"></script>
 <script src="game.js"></script>
 </body>
 </html>

@@ -12,7 +12,10 @@
   const DE = {
     "game.daily": "Tages-Challenge", "game.bestToday": "Dein Bestwert in dieser Runde", "game.sameCourse": "Gleiche Strecke für alle. Neue Strecke um", "game.yourTime": "deine Zeit",
     "game.free": "FREIER FLUG (zufällige Strecke, keine Wertung)", "game.freeTitle": "Freier Flug", "game.todayBest": "Heute bester", "game.allTime": "Allzeit",
-    "game.outOfSeeds": "KEINE KERNE MEHR!", "game.timeUp": "MISSIONSZEIT UM!", "game.newAll": "NEUER ALLZEIT-REKORD!", "game.newDay": "NEUER TAGESREKORD!", "game.seeds": "Kerne", "game.bumps": "Treffer", "game.combo": "beste Combo"
+    "game.outOfSeeds": "KEINE KERNE MEHR!", "game.timeUp": "MISSIONSZEIT UM!", "game.newAll": "NEUER ALLZEIT-REKORD!", "game.newDay": "NEUER TAGESREKORD!", "game.seeds": "Kerne", "game.bumps": "Treffer", "game.combo": "beste Combo",
+    "game.bonusRun": "Bonus-Flug", "game.notCounted": "Zählt nicht für deinen normalen Bestwert.", "game.notCountedShort": "zählt nicht für deinen normalen Bestwert",
+    "game.bonusBest": "Bonus-Bestwert", "game.newBonus": "NEUER BONUS-BESTWERT!", "game.bonusFor": "Bonus für diesen Flug", "game.looksOnly": "nur Optik",
+    "game.wheelReady": "Dein Gratis-Dreh am Glücksrad ist bereit"
   };
   const t = (k, en) => (lang === "de" && DE[k]) || en;
   function set(l) {

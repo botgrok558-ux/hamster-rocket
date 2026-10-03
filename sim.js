@@ -91,10 +91,12 @@
   function rockShape(r) { const p = []; for (let i = 0; i < 9; i++) p.push(0.78 + r() * 0.3); return p; }
 
   // ---------- simulation ----------
-  function create(seedStr) {
+  // opts (Lucky Wheel bonus, optional): { fuel: extra start fuel s, boost: boost s at launch, shield: shield s at launch, combo: spin multiplier for combo taps }
+  function create(seedStr, opts) {
+    const o = opts || {};
     const s = {
       seedStr, course: buildCourse(seedStr), state: "ready", tick: 0,
-      alt: 0, maxAlt: 0, vy: 0, x: W / 2, vx: 0, spin: 0, fuel: START_FUEL, time: 0,
+      alt: 0, maxAlt: 0, vy: 0, x: W / 2, vx: 0, spin: 0, fuel: START_FUEL + (o.fuel || 0), time: 0, opts: o,
       combo: 0, maxCombo: 0, lastTapTick: -1000, taps: 0, invuln: 0, boostT: 0, seeds: 0, hits: 0,
       fallTicks: 0, zoneI: 0, endReason: "", lo: 0
     };
@@ -105,12 +107,12 @@
   }
   function tap(s, dir, mag10) {
     if (s.state === "over" || s.state === "falling") return null;
-    if (s.state === "ready") s.state = "play";
+    if (s.state === "ready") { s.state = "play"; if (s.opts.boost) s.boostT = s.opts.boost; if (s.opts.shield) s.invuln = s.opts.shield; }
     if (s.tick - s.lastTapTick < MIN_TAP_TICKS) return null;
     s.combo = s.tick - s.lastTapTick <= COMBO_TICKS ? s.combo + 1 : 1;
     if (s.combo > s.maxCombo) s.maxCombo = s.combo;
     s.lastTapTick = s.tick; s.taps++;
-    s.spin = Math.min(SPIN_MAX, s.spin + 1);
+    s.spin = Math.min(SPIN_MAX, s.spin + (s.opts.combo && s.combo >= 5 ? s.opts.combo : 1));
     if (dir) s.vx += dir * 85 * (clamp(mag10 | 0, 3, 12) / 10);
     return { combo: s.combo };
   }

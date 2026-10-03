@@ -54,15 +54,36 @@
   };
 
   // ---------- sprites ----------
-  const sprites = { back: null, face: null, logo: null };
+  const sprites = { back: null, face: null, logo: null, v: {} };
+  // Lucky Wheel looks: recolored copies of the SVG sprites (cosmetic only)
+  const VARIANTS = {
+    "back:mint": ["assets/rocket_back.svg", [["#ff6b81", "#8ff5c9"], ["#e2294b", "#17a865"]]],
+    "back:purple": ["assets/rocket_back.svg", [["#ff6b81", "#d2b8ff"], ["#e2294b", "#7a4bd6"]]],
+    "face:gold": ["assets/hamster_face.svg", [["#ffbb55", "#ffe680"], ["#ec8a22", "#f2b705"], ["#d9771a", "#c98f00"]]]
+  };
+  async function loadVariants() {
+    const txt = {};
+    for (const [k, [src, map]] of Object.entries(VARIANTS)) {
+      try {
+        if (!txt[src]) txt[src] = await (await fetch(src)).text();
+        let t = txt[src]; for (const [a, b] of map) t = t.split(a).join(b);
+        const img = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(t));
+        if (img) sprites.v[k] = img;
+      } catch (e) { }
+    }
+    spriteCache.map = {};
+  }
   function loadImg(src) { return new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; }); }
-  const spriteCache = { scale: 0, back: null, face: null };
+  const spriteCache = { scale: 0, map: {} };
   function bakeSprites(pxScale) {
-    if (!sprites.back || !sprites.face) return;
     if (Math.abs(spriteCache.scale - pxScale) < 0.01) return;
-    const sz = Math.ceil(1024 * S * pxScale);
-    const bake = img => { const c = document.createElement("canvas"); c.width = c.height = sz; c.getContext("2d").drawImage(img, 0, 0, sz, sz); return c; };
-    spriteCache.back = bake(sprites.back); spriteCache.face = bake(sprites.face); spriteCache.scale = pxScale;
+    spriteCache.scale = pxScale; spriteCache.map = {};
+  }
+  function sprite(name) {
+    const m = spriteCache.map; if (m[name]) return m[name];
+    const img = sprites.v[name] || sprites[name.split(":")[0]]; if (!img || !spriteCache.scale) return null;
+    const sz = Math.ceil(1024 * S * spriteCache.scale), c = document.createElement("canvas"); c.width = c.height = sz;
+    c.getContext("2d").drawImage(img, 0, 0, sz, sz); return (m[name] = c);
   }
 
   // ---------- game ----------
@@ -72,7 +93,11 @@
     reset() {
       this.round = currentRound();
       this.seedStr = this.mode === "daily" ? SIM.seedForRound(this.round) : "free-" + Math.random().toString(36).slice(2);
-      this.sim = SIM.create(this.seedStr);
+      const W8 = window.HRWheel;
+      this.cos = W8 ? W8.cosmetics() : {};
+      this.bonus = W8 ? W8.pending() : null;      // Lucky Wheel bonus waiting for this run (applied on launch)
+      this.bonusRun = null;
+      this.sim = SIM.create(this.seedStr, this.bonus ? this.bonus.opts : null);
       this.course = this.sim.course;
       this.inputs = []; this.acc = 0;
       Object.assign(this, {
@@ -88,6 +113,7 @@
     get hits() { return this.sim.hits; }, get combo() { return this.sim.combo; }, get maxCombo() { return this.sim.maxCombo; },
     get invuln() { return this.sim.invuln; }, get boostT() { return this.sim.boostT; }, get endReason() { return this.sim.endReason; },
     start() {
+      if (this.bonus) { this.bonusRun = this.bonus; if (window.HRWheel) HRWheel.consume(); }
       this.state = "play"; this.el.overlay.classList.add("hidden"); this.el.over.classList.add("hidden");
       document.body.classList.add("hr-playing");
     },
@@ -171,10 +197,13 @@
       this.score = score;
       const kDay = "hr_best_" + this.round;
       const prevDay = store.get(kDay, 0), prevAll = store.get("hr_best_all", 0);
-      this.newDay = this.mode === "daily" && score > prevDay;
-      this.newAll = score > prevAll;
+      const bonus = !!this.bonusRun;              // bonus runs don't count for the normal bests
+      this.newDay = !bonus && this.mode === "daily" && score > prevDay;
+      this.newAll = !bonus && score > prevAll;
+      this.newBonus = bonus && score > store.get("hr_best_bonus", 0);
       if (this.newDay) store.set(kDay, score);
       if (this.newAll) store.set("hr_best_all", score);
+      if (this.newBonus) store.set("hr_best_bonus", score);
       store.set("hr_runs", store.get("hr_runs", 0) + 1);
       showGameOver();
     },
@@ -325,7 +354,9 @@
       c.restore();
     },
     drawRocket(c, x, y) {
-      const blink = this.invuln > 0 && Math.floor(this.invuln * 12) % 2 === 0;
+      const shieldOn = this.invuln > 0 && this.sim.opts.shield && this.time < this.sim.opts.shield + 0.05;
+      const blink = this.invuln > 0 && !shieldOn && Math.floor(this.invuln * 12) % 2 === 0;
+      const cs = this.cos || {};
       c.save(); c.translate(x, y); c.rotate(this.tilt);
       if (blink) c.globalAlpha = 0.45;
       // flame
@@ -338,17 +369,24 @@
         c.fillStyle = "rgba(255,255,255,.8)"; c.beginPath(); c.moveTo(-w * 0.45, fy); c.quadraticCurveTo(0, fy + L * 0.5, w * 0.45, fy); c.fill();
       }
       const k = 1024 * S;
-      if (spriteCache.back) c.drawImage(spriteCache.back, -512 * S, -480 * S, k, k);
+      const sb = sprite(cs.rocket ? "back:" + cs.rocket : "back");
+      if (sb) c.drawImage(sb, -512 * S, -480 * S, k, k);
       // spokes (rotate with wheel)
       c.save(); c.rotate(this.wheelA); c.strokeStyle = "#5b63d6"; c.lineWidth = 1.6;
       for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(a) * 32, Math.sin(a) * 32); c.stroke(); }
       c.restore();
       // hamster (bobs while running)
       const bob = Math.sin(this.run) * 1.6, sq = 1 + Math.sin(this.run * 2) * 0.03;
-      if (spriteCache.face) { c.save(); c.translate(0, -10 * S + bob); c.scale(0.94 * (2 - sq), 0.94 * sq); c.drawImage(spriteCache.face, -512 * S, -520 * S, k, k); c.restore(); }
+      const sf = sprite(cs.skin ? "face:" + cs.skin : "face");
+      if (sf) { c.save(); c.translate(0, -10 * S + bob); c.scale(0.94 * (2 - sq), 0.94 * sq); c.drawImage(sf, -512 * S, -520 * S, k, k); c.restore(); }
       // rim
       c.lineWidth = 64 * S; c.strokeStyle = "#170d33"; c.beginPath(); c.arc(0, 0, 262 * S, 0, 6.28); c.stroke();
-      c.lineWidth = 40 * S; c.strokeStyle = this.boostT > 0 ? "#ffd23f" : "#38d9ff"; c.beginPath(); c.arc(0, 0, 262 * S, 0, 6.28); c.stroke();
+      c.lineWidth = 40 * S; c.strokeStyle = this.boostT > 0 ? "#ffd23f" : (cs.skin === "gold" ? "#ffcf33" : "#38d9ff"); c.beginPath(); c.arc(0, 0, 262 * S, 0, 6.28); c.stroke();
+      if (shieldOn) {   // Lucky Wheel gold shield bubble
+        const pulse = 0.55 + 0.25 * Math.sin(performance.now() / 120);
+        c.fillStyle = `rgba(255,214,64,${0.16 * pulse + 0.06})`; c.strokeStyle = `rgba(255,214,64,${pulse})`; c.lineWidth = 4;
+        c.beginPath(); c.arc(0, 2, 52, 0, 6.28); c.fill(); c.stroke();
+      }
       c.strokeStyle = "#e6fbff"; c.lineWidth = 1.6;
       for (let i = 0; i < 18; i++) { const a = this.wheelA * 1.0 + i * 6.283 / 18, r1 = 262 * S - 2.4, r2 = 262 * S + 2.4; c.beginPath(); c.moveTo(Math.cos(a) * r1, Math.sin(a) * r1); c.lineTo(Math.cos(a) * r2, Math.sin(a) * r2); c.stroke(); }
       c.restore();
@@ -362,8 +400,9 @@
       c.strokeText(altTxt, W / 2, 56); c.fillText(altTxt, W / 2, 56);
       c.font = '15px "Luckiest Guy", system-ui, sans-serif'; c.lineWidth = 4;
       const best = this.mode === "daily" ? store.get("hr_best_" + this.round, 0) : store.get("hr_best_all", 0);
-      const sub = (this.mode === "daily" ? `DAILY #${dayNumber(this.round)} · BEST ${fmt(best)} m` : `FREE FLIGHT · BEST ${fmt(best)} m`);
-      c.strokeText(sub, W / 2, 80); c.fillStyle = "#ffe9a8"; c.fillText(sub, W / 2, 80);
+      const bn = this.bonusRun || this.bonus;
+      const sub = bn ? `BONUS RUN · ${bn.name.toUpperCase()}` : (this.mode === "daily" ? `DAILY #${dayNumber(this.round)} · BEST ${fmt(best)} m` : `FREE FLIGHT · BEST ${fmt(best)} m`);
+      c.strokeText(sub, W / 2, 80); c.fillStyle = bn ? "#ff9fc0" : "#ffe9a8"; c.fillText(sub, W / 2, 80);
       // fuel bar
       const fx = 16, fy = 104, fw = W - 32, fh = 16, f = clamp(this.fuel / (START_FUEL + 6), 0, 1);
       c.fillStyle = "rgba(23,13,51,.55)"; rr(c, fx, fy, fw, fh, 8); c.fill();
@@ -443,8 +482,11 @@
     el.goStats.textContent = `🌻 ${G.seeds} ${T("game.seeds", "seeds")} · 💥 ${G.hits} ${T("game.bumps", "bumps")} · 🔥 ${T("game.combo", "best combo")} x${G.maxCombo}`;
     const best = G.mode === "daily" ? store.get("hr_best_" + G.round, 0) : store.get("hr_best_all", 0);
     el.goBest.textContent = G.mode === "daily" ? `${T("game.todayBest", "Today's best")}: ${fmt(best)} m · ${T("game.allTime", "All-time")}: ${fmt(store.get("hr_best_all", 0))} m` : `${T("game.allTime", "All-time")}: ${fmt(best)} m`;
-    el.goBadge.classList.toggle("hidden", !(G.newDay || G.newAll));
-    el.goBadge.textContent = G.newAll ? T("game.newAll", "NEW ALL-TIME BEST!") : T("game.newDay", "NEW DAILY BEST!");
+    el.goBadge.classList.toggle("hidden", !(G.newDay || G.newAll || G.newBonus));
+    el.goBadge.textContent = G.newBonus ? T("game.newBonus", "NEW BONUS BEST!") : G.newAll ? T("game.newAll", "NEW ALL-TIME BEST!") : T("game.newDay", "NEW DAILY BEST!");
+    const bn = G.bonusRun;
+    el.goBonus.classList.toggle("hidden", !bn);
+    el.goBonus.textContent = bn ? `🎁 ${T("game.bonusRun", "Bonus run")}: ${bn.emoji} ${window.HRWheel ? HRWheel.name(bn.id) : bn.name}. ${T("game.notCounted", "Not counted in your normal best.")} ${T("game.bonusBest", "Bonus best")}: ${fmt(store.get("hr_best_bonus", 0))} m` : "";
     el.goTitle.textContent = G.mode === "daily" ? `${T("game.daily", "Daily Challenge")} #${dayNumber(G.round)}` : T("game.freeTitle", "Free Flight");
     el.over.classList.remove("hidden");
     setTimeout(() => el.again && el.again.focus({ preventScroll: true }), 50);
@@ -456,6 +498,13 @@
     const endLocal = new Date(SIM.roundEnd(d)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     G.el.startDay.textContent = `${T("game.daily", "Daily Challenge")} #${dayNumber(d)}`;
     const b = store.get("hr_best_" + d, 0);
+    const W8 = window.HRWheel, bn = G.state === "ready" ? G.bonus : null, cs = G.cos || {};
+    const bits = [];
+    if (bn) bits.push(`🎁 ${T("game.bonusFor", "Bonus for this run")}: ${bn.emoji} ${W8 ? W8.name(bn.id) : bn.name} (${T("game.notCountedShort", "not counted in your normal best")})`);
+    if (cs.id) bits.push(`${cs.emoji} ${W8 ? W8.name(cs.id) : cs.name} · ${T("game.looksOnly", "looks only")}`);
+    G.el.startBonus.textContent = bits.join(" · "); G.el.startBonus.hidden = !bits.length;
+    G.el.startWheel.textContent = `🎡 ${T("game.wheelReady", "Your free daily Lucky Wheel spin is ready")} →`;
+    G.el.startWheel.hidden = !(W8 && W8.canSpin());
     G.el.startBest.textContent = b ? `${T("game.bestToday", "Your best this round")}: ${fmt(b)} m` : `${T("game.sameCourse", "Same course for everyone. New course at")} ${endLocal} (${T("game.yourTime", "your time")}).`;
   }
   function restart(mode) {
@@ -467,7 +516,7 @@
 
   // ---------- share + score card ----------
   function shareText() {
-    return `I scored ${fmt(G.score)} m in Hamster Rocket 🐹🚀 Can you beat me?`;
+    return `I scored ${fmt(G.score)} m in Hamster Rocket 🐹🚀${G.bonusRun ? " (Lucky Wheel bonus run)" : ""} Can you beat me?`;
   }
   function shareX() {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(CFG.SITE_URL || location.href.split("#")[0])}`;
@@ -486,7 +535,7 @@
     c.textAlign = "left"; c.lineJoin = "round";
     const txt = (t, x, y, font, fill, stroke = 10) => { c.font = font; c.lineWidth = stroke; c.strokeStyle = "#170d33"; c.strokeText(t, x, y); c.fillStyle = fill; c.fillText(t, x, y); };
     txt((CFG.NAME || "Hamster Rocket").toUpperCase(), 590, 150, '64px "Luckiest Guy", sans-serif', "#ffd23f");
-    txt(G.mode === "daily" ? `DAILY CHALLENGE #${dayNumber(G.round)} · ${G.round}` : "FREE FLIGHT", 592, 200, '30px "Luckiest Guy", sans-serif', "#c9f6ff", 7);
+    txt((G.mode === "daily" ? `DAILY CHALLENGE #${dayNumber(G.round)} · ${G.round}` : "FREE FLIGHT") + (G.bonusRun ? " · BONUS RUN" : ""), 592, 200, '30px "Luckiest Guy", sans-serif', "#c9f6ff", 7);
     txt("MY HAMSTER FLEW", 592, 290, '40px "Luckiest Guy", sans-serif', "#ffffff", 8);
     txt(`${fmt(G.score)} m`, 586, 410, '120px "Luckiest Guy", sans-serif', "#ffffff", 14);
     txt(`🌻 ${G.seeds} seeds   🔥 combo x${G.maxCombo}`, 592, 475, '600 34px "Baloo 2", sans-serif', "#ffe9a8", 6);
@@ -517,14 +566,17 @@
     const $ = id => document.getElementById(id);
     G.el = {
       wrap: $("hr-wrap"), stage: $("hr-stage"), overlay: $("hr-start"), over: $("hr-over"),
-      goScore: $("go-score"), goReason: $("go-reason"), goStats: $("go-stats"), goBest: $("go-best"), goBadge: $("go-badge"), goTitle: $("go-title"),
-      again: $("go-again"), startDay: $("start-day"), startBest: $("start-best"), mute: $("hr-mute")
+      goScore: $("go-score"), goReason: $("go-reason"), goStats: $("go-stats"), goBest: $("go-best"), goBadge: $("go-badge"), goTitle: $("go-title"), goBonus: $("go-bonus"),
+      again: $("go-again"), startDay: $("start-day"), startBest: $("start-best"), startBonus: $("start-bonus"), startWheel: $("start-wheel"), mute: $("hr-mute")
     };
     if (!G.el.wrap) return;
     G.canvas = $("hr-canvas"); G.ctx = G.canvas.getContext("2d");
     const [back, face, logo] = await Promise.all([loadImg("assets/rocket_back.svg"), loadImg("assets/hamster_face.svg"), loadImg("assets/logo_512.png")]);
     Object.assign(sprites, { back, face, logo });
     G.reset(); resize(); bindInput(); updateStartCard();
+    loadVariants();
+    window.addEventListener("hr:wheel", () => { if (G.state === "ready") G.reset(); else G.cos = window.HRWheel ? HRWheel.cosmetics() : {}; updateStartCard(); });
+    window.addEventListener("hr:lang", () => updateStartCard());
     window.addEventListener("resize", resize);
     if (window.ResizeObserver) new ResizeObserver(resize).observe(G.el.wrap);
     if (window.IntersectionObserver) new IntersectionObserver(es => { G.inView = es[0].isIntersecting && es[0].intersectionRatio > 0.45; }, { threshold: [0, 0.45, 0.8] }).observe(G.el.stage);
