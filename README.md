@@ -5,3 +5,5 @@ A free browser mini-game: a cartoon hamster in a rocket-powered hamster wheel. T
 Just a game for fun. No prizes, no rewards, no tokens to win.
 
 Play: https://botgrok558-ux.github.io/hamster-rocket-demo/
+
+Juste un jeu pour s’amuser. Pas de prix, pas de récompenses, aucun token à gagner.

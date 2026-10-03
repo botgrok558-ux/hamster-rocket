@@ -91,12 +91,15 @@
   function rockShape(r) { const p = []; for (let i = 0; i < 9; i++) p.push(0.78 + r() * 0.3); return p; }
 
   // ---------- simulation ----------
-  // opts (Lucky Wheel bonus, optional): { fuel: extra start fuel s, boost: boost s at launch, shield: shield s at launch, combo: spin multiplier for combo taps }
+  // opts (Lucky Wheel bonus for one run, optional):
+  //   fuel: extra start fuel (s), boost: boost at launch (s), tap: spin per tap multiplier, drain: fuel burn multiplier,
+  //   seedMul: fuel per seed multiplier, absorb: hits a shield absorbs, comboWin: combo window multiplier,
+  //   combo + comboFrom: spin multiplier for taps once the combo reaches comboFrom, steer: steering multiplier
   function create(seedStr, opts) {
     const o = opts || {};
     const s = {
       seedStr, course: buildCourse(seedStr), state: "ready", tick: 0,
-      alt: 0, maxAlt: 0, vy: 0, x: W / 2, vx: 0, spin: 0, fuel: START_FUEL + (o.fuel || 0), time: 0, opts: o,
+      alt: 0, maxAlt: 0, vy: 0, x: W / 2, vx: 0, spin: 0, fuel: START_FUEL + (o.fuel || 0), time: 0, opts: o, absorb: o.absorb || 0, comboTicks: Math.round(COMBO_TICKS * (o.comboWin || 1)),
       combo: 0, maxCombo: 0, lastTapTick: -1000, taps: 0, invuln: 0, boostT: 0, seeds: 0, hits: 0,
       fallTicks: 0, zoneI: 0, endReason: "", lo: 0
     };
@@ -107,13 +110,13 @@
   }
   function tap(s, dir, mag10) {
     if (s.state === "over" || s.state === "falling") return null;
-    if (s.state === "ready") { s.state = "play"; if (s.opts.boost) s.boostT = s.opts.boost; if (s.opts.shield) s.invuln = s.opts.shield; }
+    if (s.state === "ready") { s.state = "play"; if (s.opts.boost) s.boostT = s.opts.boost; }
     if (s.tick - s.lastTapTick < MIN_TAP_TICKS) return null;
-    s.combo = s.tick - s.lastTapTick <= COMBO_TICKS ? s.combo + 1 : 1;
+    s.combo = s.tick - s.lastTapTick <= s.comboTicks ? s.combo + 1 : 1;
     if (s.combo > s.maxCombo) s.maxCombo = s.combo;
     s.lastTapTick = s.tick; s.taps++;
-    s.spin = Math.min(SPIN_MAX, s.spin + (s.opts.combo && s.combo >= 5 ? s.opts.combo : 1));
-    if (dir) s.vx += dir * 85 * (clamp(mag10 | 0, 3, 12) / 10);
+    s.spin = Math.min(SPIN_MAX, s.spin + (s.opts.tap || 1) * (s.opts.combo && s.combo >= (s.opts.comboFrom || 5) ? s.opts.combo : 1));
+    if (dir) s.vx += dir * 85 * (s.opts.steer || 1) * (clamp(mag10 | 0, 3, 12) / 10);
     return { combo: s.combo };
   }
   function end(s, reason, ev) {
@@ -128,7 +131,7 @@
     s.tick++; s.time = s.tick * DT;
     s.spin *= SPIN_DECAY;
     if (s.state === "play") {
-      s.fuel -= DT * (1 + s.time / 40);
+      s.fuel -= DT * (1 + s.time / 40) * (s.opts.drain || 1);
       if (s.fuel <= 0) end(s, "OUT OF SEEDS!", ev);
       else if (s.time >= MAX_TIME) end(s, "MISSION TIME UP!", ev);
     }
@@ -164,7 +167,7 @@
         if (d < 70) { const f = Math.min(1, DT * 6); o.x += dx * f; o.y -= dy * f; }
         if (d < ROCKET_R + 14) {
           o.got = true; s.seeds++;
-          const add = o.gold ? 6 : 3; s.fuel = Math.min(START_FUEL + 6, s.fuel + add);
+          const add = Math.round((o.gold ? 6 : 3) * (s.opts.seedMul || 1) * 10) / 10; s.fuel = Math.min(START_FUEL + 6, s.fuel + add);
           ev.push({ type: "seed", x: o.x, y: o.y, gold: o.gold, add });
         }
       } else if (o.type === "ring") {
@@ -176,10 +179,15 @@
       } else if (playing && s.invuln <= 0) {
         const nx = (s.x - o.x) / (o.a + ROCKET_R * 0.85), ny = dy / (o.b + ROCKET_R * 0.85);
         if (nx * nx + ny * ny < 1) {
-          s.hits++; s.invuln = 1.1; s.vy *= 0.45; s.spin *= 0.5; s.fuel -= 3;
-          s.vx += (s.x < o.x ? -1 : 1) * 260;
-          ev.push({ type: "hit", x: o.x, y: o.y });
-          if (s.fuel <= 0) end(s, "OUT OF SEEDS!", ev);
+          if (s.absorb > 0) {             // gold rocket shield takes the hit
+            s.absorb--; s.invuln = 1.1; s.vx += (s.x < o.x ? -1 : 1) * 120;
+            ev.push({ type: "block", x: o.x, y: o.y });
+          } else {
+            s.hits++; s.invuln = 1.1; s.vy *= 0.45; s.spin *= 0.5; s.fuel -= 3;
+            s.vx += (s.x < o.x ? -1 : 1) * 260;
+            ev.push({ type: "hit", x: o.x, y: o.y });
+            if (s.fuel <= 0) end(s, "OUT OF SEEDS!", ev);
+          }
         }
       }
     }

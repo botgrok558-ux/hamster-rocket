@@ -1,67 +1,73 @@
 /* Hamster Rocket: daily Lucky Wheel (Glücksrad).
    In-game bonuses only, no real prizes. One spin per day per device (localStorage),
-   resets at 00:00 UTC. Visual slice sizes match the real odds exactly: the landing
+   resets with the daily course (21:00 America/New_York). Visual slice sizes match the real odds exactly: the landing
    slice is picked by the RNG first, then the wheel stops at a random point inside it. */
 (() => {
   "use strict";
   const KEY = "hr_wheel", PKEY = "hr_bonus", TAU = Math.PI * 2;
-  const BLANK_TOTAL = 75;                       // % chance of "nothing"
+  const BLANK_TOTAL = 65;                       // % chance of "nothing" (wins: 35%)
+  // kind "perf" = gameplay bonus for the NEXT run (bonus run, not counted for the normal best); "cos" = looks only.
+  // Weights are % and add up to 35 (stronger effects slightly lower).
   const BONUSES = {
-    fuel:   { kind: "perf", w: 4, emoji: "🌻", color: "#ffd23f", opts: { fuel: 6 },
-      en: ["+6 s seed fuel", "Your next run starts with 6 extra seconds of seed fuel."],
-      de: ["+6 s Kerne-Treibstoff", "Dein nächster Flug startet mit 6 Sekunden mehr Treibstoff."] },
-    turbo:  { kind: "perf", w: 4, emoji: "🚀", color: "#38d9ff", opts: { boost: 2.5 },
-      en: ["Turbo start", "A 2.5 s speed boost right at launch on your next run."],
-      de: ["Turbo-Start", "2,5 s Speed-Boost direkt beim Start deines nächsten Flugs."] },
-    combo:  { kind: "perf", w: 3, emoji: "🔥", color: "#ff8a1f", opts: { combo: 1.5 },
-      en: ["Combo x1.5", "On your next run, combo taps (5+ in a row) spin the wheel 1.5x harder."],
-      de: ["Combo x1,5", "Im nächsten Flug drehen Combo-Tipps (ab 5 in Folge) das Rad 1,5x stärker."] },
-    shield: { kind: "perf", w: 2, emoji: "🛡️", color: "#fff1a8", opts: { shield: 4 },
-      en: ["Gold shield", "A golden shield protects you for the first 4 s of your next run."],
-      de: ["Gold-Schild", "Ein goldener Schild schützt dich in den ersten 4 s deines nächsten Flugs."] },
-    gold:   { kind: "cos", w: 4, emoji: "✨", color: "#ffb703", skin: "gold",
-      en: ["Golden hamster", "Your hamster turns golden until the next reset (looks only)."],
-      de: ["Goldener Hamster", "Dein Hamster ist bis zum nächsten Reset golden (nur Optik)."] },
-    mint:   { kind: "cos", w: 4, emoji: "💚", color: "#6ee7a0", rocket: "mint",
-      en: ["Mint rocket", "A mint-green rocket until the next reset (looks only)."],
-      de: ["Mint-Rakete", "Eine mintgrüne Rakete bis zum nächsten Reset (nur Optik)."] },
-    purple: { kind: "cos", w: 4, emoji: "💜", color: "#b69cff", rocket: "purple",
-      en: ["Purple rocket", "A purple rocket until the next reset (looks only)."],
-      de: ["Lila Rakete", "Eine lila Rakete bis zum nächsten Reset (nur Optik)."] }
+    fuel:   { kind: "perf", w: 3.5, emoji: "🌻", color: "#fff1a8", opts: { fuel: 6 },
+      en: ["+6 s seed fuel", "Start with 6 extra seconds of seed fuel."], de: ["+6 s Kerne-Treibstoff", "Start mit 6 Sekunden mehr Treibstoff."], fr: ["+6 s de carburant", "Départ avec 6 secondes de carburant en plus."] },
+    turbo:  { kind: "perf", w: 3.5, emoji: "🚀", color: "#38d9ff", opts: { boost: 2.5 },
+      en: ["Turbo start", "A 2.5 s speed boost right at launch."], de: ["Turbo-Start", "2,5 s Speed-Boost direkt beim Start."], fr: ["Départ turbo", "2,5 s d’accélération dès le décollage."] },
+    red:    { kind: "perf", w: 3.5, emoji: "🔴", color: "#ff4d5e", rocket: "red", opts: { tap: 1.15 },
+      en: ["Red rocket", "+15% thrust per tap."], de: ["Rote Rakete", "+15 % Schub pro Tipp."], fr: ["Fusée rouge", "+15\u00a0% de poussée par tap."] },
+    blue:   { kind: "perf", w: 4.2, emoji: "🔵", color: "#4d8dff", rocket: "blue", opts: { drain: 0.85 },
+      en: ["Blue rocket", "Seed fuel burns 15% slower."], de: ["Blaue Rakete", "Treibstoff verbrennt 15 % langsamer."], fr: ["Fusée bleue", "Le carburant brûle 15\u00a0% moins vite."] },
+    green:  { kind: "perf", w: 4.2, emoji: "🟢", color: "#4fe08f", rocket: "green", opts: { seedMul: 1.2 },
+      en: ["Green rocket", "Seeds give 20% more fuel."], de: ["Grüne Rakete", "Kerne geben 20 % mehr Treibstoff."], fr: ["Fusée verte", "Les graines donnent 20\u00a0% de carburant en plus."] },
+    gold:   { kind: "perf", w: 2.8, emoji: "🟡", color: "#ffc21a", rocket: "gold", opts: { absorb: 1 },
+      en: ["Gold rocket", "A gold shield absorbs one hit."], de: ["Gold-Rakete", "Ein Gold-Schild fängt einen Treffer ab."], fr: ["Fusée dorée", "Un bouclier doré absorbe un choc."] },
+    purple: { kind: "perf", w: 3.5, emoji: "🟣", color: "#b69cff", rocket: "purple", opts: { comboWin: 1.2, combo: 1.15, comboFrom: 3 },
+      en: ["Purple rocket", "Combos build faster: +20% combo time, +15% spin from 3 taps in a row."], de: ["Lila Rakete", "Combos bauen sich schneller auf: +20 % Combo-Zeit, +15 % Drehung ab 3 Tipps in Folge."], fr: ["Fusée violette", "Combos plus rapides\u00a0: +20\u00a0% de temps de combo, +15\u00a0% de rotation dès 3 taps d’affilée."] },
+    silver: { kind: "perf", w: 4.9, emoji: "⚪", color: "#dfe6f0", rocket: "silver", opts: { steer: 1.2 },
+      en: ["Silver rocket", "+20% steering control."], de: ["Silber-Rakete", "+20 % Lenk-Kontrolle."], fr: ["Fusée argentée", "+20\u00a0% de contrôle de direction."] },
+    hamster: { kind: "cos", w: 4.9, emoji: "✨", color: "#ffa94d", skin: "gold",
+      en: ["Golden hamster", "Your hamster turns golden until the next reset (looks only)."], de: ["Goldener Hamster", "Dein Hamster ist bis zum nächsten Reset golden (nur Optik)."], fr: ["Hamster doré", "Ton hamster devient doré jusqu’au prochain reset (look uniquement)."] }
   };
-  const ORDER = ["fuel", "turbo", "gold", "combo", "mint", "shield", "purple"];
-  // one blank slice after every bonus slice, so the 75% "nothing" area is spread around the wheel
+  const ORDER = ["fuel", "red", "blue", "turbo", "gold", "green", "hamster", "purple", "silver"];
+  // one blank slice after every bonus slice, so the 65% "nothing" area is spread around the wheel
   const SLICES = [];
   ORDER.forEach(id => { SLICES.push({ id, w: BONUSES[id].w }); SLICES.push({ id: "none", w: BLANK_TOTAL / ORDER.length }); });
   const TOTAL = SLICES.reduce((a, s) => a + s.w, 0);   // = 100
   let acc = 0;
   SLICES.forEach(s => { s.a0 = acc / TOTAL * 360; acc += s.w; s.a1 = acc / TOTAL * 360; s.pct = s.w / TOTAL * 100; });
 
-  const L = () => (window.HRI18N && HRI18N.lang === "de") ? "de" : "en";
+  const L = () => { const l = window.HRI18N && HRI18N.lang; return l === "de" || l === "fr" ? l : "en"; };
   const TX = {
     en: { spin: "🎡 Spin the wheel!", spinning: "Spinning…", next: "Next spin in", ready: "1 free spin today", hub: "SPIN",
       got: "You got", none: "No luck today, try again tomorrow!", pending: "Ready: applies to your next run.", used: "Used on your last run.",
-      cos: "Active until the next reset (looks only).", play: "▶ Play with bonus", playNow: "▶ Play now", nothing: "Nothing",
-      slices: "slices", fair: "🌻🚀🔥🛡️ bonus runs are marked and don't count for your normal best. Colors and skins are looks only.",
-      looks: "looks only", usedToday: "Today's spin is used. Come back tomorrow!", resetAt: "New spin every day at 00:00 UTC", yourTime: "your time" },
+      cos: "Active until the next reset (looks only).", nextRun: "Next run", play: "▶ Play with bonus", playNow: "▶ Play now", nothing: "Nothing",
+      slices: "slices", fair: "Rocket colors, 🌻 and 🚀 change the gameplay of your next run: those bonus runs are marked and don't count for your normal best. The golden hamster is looks only.",
+      looks: "looks only", usedToday: "Today's spin is used. Come back tomorrow!", resetAt: "New spin every day at 21:00 New York time, together with the new course", yourTime: "your time" },
     de: { spin: "🎡 Glücksrad drehen!", spinning: "Dreht…", next: "Nächster Dreh in", ready: "1 Gratis-Dreh heute", hub: "DREH",
       got: "Du hast", none: "Heute kein Glück, morgen wieder!", pending: "Bereit: gilt für deinen nächsten Flug.", used: "Beim letzten Flug genutzt.",
-      cos: "Aktiv bis zum nächsten Reset (nur Optik).", play: "▶ Mit Bonus spielen", playNow: "▶ Jetzt spielen", nothing: "Nichts",
-      slices: "Felder", fair: "🌻🚀🔥🛡️ Bonus-Flüge sind markiert und zählen nicht für deinen normalen Bestwert. Farben und Skins sind nur Optik.",
-      looks: "nur Optik", usedToday: "Der heutige Dreh ist verbraucht. Komm morgen wieder!", resetAt: "Neuer Dreh jeden Tag um 00:00 UTC", yourTime: "deine Zeit" }
+      cos: "Aktiv bis zum nächsten Reset (nur Optik).", nextRun: "Nächster Flug", play: "▶ Mit Bonus spielen", playNow: "▶ Jetzt spielen", nothing: "Nichts",
+      slices: "Felder", fair: "Raketenfarben, 🌻 und 🚀 verändern das Gameplay deines nächsten Flugs: Diese Bonus-Flüge sind markiert und zählen nicht für deinen normalen Bestwert. Der goldene Hamster ist nur Optik.",
+      looks: "nur Optik", usedToday: "Der heutige Dreh ist verbraucht. Komm morgen wieder!", resetAt: "Neuer Dreh jeden Tag um 21:00 New Yorker Zeit, zusammen mit der neuen Strecke", yourTime: "deine Zeit" },
+    fr: { spin: "🎡 Tourner la roue\u00a0!", spinning: "Ça tourne…", next: "Prochain tour dans", ready: "1 tour gratuit aujourd’hui", hub: "TOURNE",
+      got: "Tu obtiens", none: "Pas de chance aujourd’hui, reviens demain\u00a0!", pending: "Prêt\u00a0: s’applique à ta prochaine partie.", used: "Utilisé lors de ta dernière partie.",
+      cos: "Actif jusqu’au prochain reset (look uniquement).", nextRun: "Prochaine partie", play: "▶ Jouer avec le bonus", playNow: "▶ Jouer", nothing: "Rien",
+      slices: "cases", fair: "Les couleurs de fusée, 🌻 et 🚀 changent le gameplay de ta prochaine partie\u00a0: ces parties bonus sont signalées et ne comptent pas pour ton record normal. Le hamster doré est purement esthétique.",
+      looks: "look uniquement", usedToday: "Le tour du jour est utilisé. Reviens demain\u00a0!", resetAt: "Nouveau tour chaque jour à 21:00, heure de New York, avec le nouveau parcours", yourTime: "ton heure" }
   };
   const tx = k => TX[L()][k];
   const name = id => BONUSES[id] ? BONUSES[id][L()][0] : tx("nothing");
-  const fmtPct = p => (Math.round(p * 10) / 10).toLocaleString(L() === "de" ? "de-CH" : "en-US") + "%";
+  const fmtPct = p => { const l = L(), n = (Math.round(p * 10) / 10).toLocaleString(l === "de" ? "de-DE" : l === "fr" ? "fr-FR" : "en-US"); return l === "en" ? n + "%" : n + "\u00a0%"; };
 
   const store = {
     get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } },
     del(k) { try { localStorage.removeItem(k); } catch (e) { } }
   };
-  const dayKey = (ms = Date.now()) => new Date(ms).toISOString().slice(0, 10);
-  const nextReset = (ms = Date.now()) => { const d = new Date(ms); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1); };
-  const todaySpin = () => { const s = store.get(KEY); return s && s.day === dayKey() ? s : null; };
+  // daily reset = the daily course reset (21:00 America/New_York, see sim.js)
+  const SIM = window.HRSim;
+  const dayKey = (ms = Date.now()) => SIM.roundFor(ms);
+  const nextReset = (ms = Date.now()) => SIM.roundEnd(SIM.roundFor(ms));
+  const todaySpin = () => { const s = store.get(KEY); return s && s.day === dayKey() && (s.result === "none" || BONUSES[s.result]) ? s : null; };
   const canSpin = () => !todaySpin();
 
   function rand() {
@@ -83,11 +89,20 @@
   let el = {}, rot = 0, spinning = false, last = null, ptrSlice = -1, lastDay = dayKey();
 
   // ---------- drawing ----------
+  let off = null;
+  function paint() {
+    const cv = el.canvas; if (!cv || !off) return;
+    if (cv.width !== off.width) { cv.width = off.width; cv.height = off.height; }
+    const c = cv.getContext("2d"), h = cv.width / 2;
+    c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height);
+    c.translate(h, h); c.rotate(rot * Math.PI / 180); c.drawImage(off, -h, -h);
+  }
   function draw(hl = -1) {
-    const cv = el.canvas; if (!cv) return;
-    const css = cv.clientWidth || 360, dpr = Math.min(window.devicePixelRatio || 1, 2.5), px = Math.max(200, Math.round(css * dpr));
-    if (cv.width !== px) { cv.width = px; cv.height = px; }
-    const c = cv.getContext("2d");
+    if (!el.canvas) return;
+    const css = el.canvas.clientWidth || 360, dpr = Math.min(window.devicePixelRatio || 1, 2.5), px = Math.max(200, Math.round(css * dpr));
+    off = off || document.createElement("canvas");
+    if (off.width !== px) { off.width = px; off.height = px; }
+    const c = off.getContext("2d");
     c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, px, px); c.scale(px / 400, px / 400);
     const cx = 200, cy = 200, R = 192;
     c.beginPath(); c.arc(cx, cy, R + 6, 0, TAU); c.fillStyle = "#170d33"; c.fill();
@@ -115,8 +130,9 @@
       c.beginPath(); c.arc(cx + Math.cos(a) * (R - 6), cy + Math.sin(a) * (R - 6), 3.4, 0, TAU);
       c.fillStyle = k % 2 ? "#fff6b0" : "#ffd23f"; c.fill();
     }
+    paint();
   }
-  const setRot = d => { rot = d; el.canvas.style.transform = `rotate(${d}deg)`; };
+  const setRot = d => { rot = d; paint(); };
 
   // ---------- effects ----------
   function confetti() {
@@ -199,12 +215,12 @@
     const pend = store.get(PKEY), isPending = b.kind === "perf" && pend && pend.id === sp.result;
     const status = b.kind === "cos" ? tx("cos") : isPending ? tx("pending") : tx("used");
     const btn = `<a class="btn btn-primary btn-small" href="#play">${isPending || b.kind === "cos" ? tx("play") : tx("playNow")}</a>`;
-    el.result.innerHTML = `<div class="wr-emoji" aria-hidden="true">${b.emoji}</div><div><p class="wr-title">${tx("got")}: ${b[L()][0]}!</p><p class="small">${b[L()][1]}</p><p class="muted small">${status}</p>${btn}</div>`;
+    el.result.innerHTML = `<div class="wr-emoji" aria-hidden="true">${b.emoji}</div><div><p class="wr-title">${tx("got")}${L() === "fr" ? "\u00a0" : ""}: ${b[L()][0]}${L() === "fr" ? "\u00a0" : ""}!</p><p class="small">${b.kind === "perf" ? `<b>${tx("nextRun")}${L() === "fr" ? "\u00a0" : ""}:</b> ` : ""}${b[L()][1]}</p><p class="muted small">${status}</p>${btn}</div>`;
   }
   function legend() {
     if (!el.legend) return;
     const rows = ORDER.map(id => { const b = BONUSES[id];
-      return `<li><span class="sw" style="background:${b.color}"></span><span class="lg-e" aria-hidden="true">${b.emoji}</span><span class="lg-n">${b[L()][0]}${b.kind === "cos" ? ` <em>(${tx("looks")})</em>` : ""}</span><b>${fmtPct(b.w)}</b></li>`; });
+      return `<li><span class="sw" style="background:${b.color}"></span><span class="lg-e" aria-hidden="true">${b.emoji}</span><span class="lg-n">${b[L()][0]}${b.kind === "cos" ? ` <em>(${tx("looks")})</em>` : ""}${b.kind === "perf" ? `<small>${b[L()][1]}</small>` : ""}</span><b>${fmtPct(b.w)}</b></li>`; });
     rows.push(`<li class="lg-none"><span class="sw" style="background:#2f3299"></span><span class="lg-e" aria-hidden="true">😢</span><span class="lg-n">${tx("nothing")} <em>(${ORDER.length} ${tx("slices")})</em></span><b>${fmtPct(BLANK_TOTAL)}</b></li>`);
     el.legend.innerHTML = rows.join("");
     el.fair.textContent = tx("fair");
@@ -222,7 +238,7 @@
       oddsBtn: $("odds-btn"), oddsTip: $("odds-tip") };
     if (!el.canvas) return;
     const sp = todaySpin();
-    if (sp && SLICES[sp.slice]) { setRot(360 - sp.angle); draw(sp.slice); el.box.classList.add(sp.result === "none" ? "lost" : "won", "static"); }
+    if (sp && SLICES[sp.slice] && SLICES[sp.slice].id === sp.result) { setRot(360 - sp.angle); draw(sp.slice); el.box.classList.add(sp.result === "none" ? "lost" : "won", "static"); }
     else { setRot(0); draw(); }
     el.go.addEventListener("click", spin); el.hub.addEventListener("click", spin);
     const tip = o => { el.oddsTip.hidden = !o; el.oddsBtn.setAttribute("aria-expanded", String(o)); };
@@ -238,9 +254,10 @@
 
   window.HRWheel = {
     SLICES, BONUSES, BLANK_TOTAL, sliceAt, pickSlice, spin, canSpin, dayKey, nextReset, refresh,
-    pending() { const p = store.get(PKEY); const b = p && BONUSES[p.id]; return b ? { id: p.id, emoji: b.emoji, name: name(p.id), opts: b.opts } : null; },
+    pending() { const p = store.get(PKEY); const b = p && BONUSES[p.id]; return b && b.kind === "perf" ? { id: p.id, emoji: b.emoji, name: name(p.id), effect: b[L()][1], rocket: b.rocket || null, opts: b.opts } : null; },
+    effect: id => BONUSES[id] ? BONUSES[id][L()][1] : "",
     consume() { store.del(PKEY); render(); },
-    cosmetics() { const s = todaySpin(), b = s && BONUSES[s.result]; return b && b.kind === "cos" ? { id: s.result, emoji: b.emoji, name: name(s.result), skin: b.skin || null, rocket: b.rocket || null } : {}; },
+    cosmetics() { const s = todaySpin(), b = s && BONUSES[s.result]; return b && b.kind === "cos" ? { id: s.result, emoji: b.emoji, name: name(s.result), skin: b.skin || null } : {}; },
     name, get spinning() { return spinning; }, get rotation() { return rot; }, get last() { return last; }
   };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();

@@ -13,6 +13,9 @@
   const lerp = (a, b, t) => a + (b - a) * t;
   const fmt = n => Math.floor(n).toLocaleString("en-US");
   const rngFrom = SIM.rngFrom;
+  const C = () => (window.HRI18N && HRI18N.lang === "fr" ? "\u00a0: " : ": ");   // French puts a space before ":"
+  const TT = (k, en) => (window.HRI18N ? HRI18N.t(k, en) : en);           // translated text (EN fallback)
+  const REASON = r => r === "OUT OF SEEDS!" ? TT("game.outOfSeeds", r) : r === "MISSION TIME UP!" ? TT("game.timeUp", r) : r;
   const currentRound = () => SIM.roundFor(Date.now());
   const dayNumber = d => Math.floor((Date.parse(d + "T00:00:00Z") - Date.parse((CFG.DAY_ONE || "2026-10-03") + "T00:00:00Z")) / 864e5) + 1;
   const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
@@ -57,8 +60,12 @@
   const sprites = { back: null, face: null, logo: null, v: {} };
   // Lucky Wheel looks: recolored copies of the SVG sprites (cosmetic only)
   const VARIANTS = {
-    "back:mint": ["assets/rocket_back.svg", [["#ff6b81", "#8ff5c9"], ["#e2294b", "#17a865"]]],
+    "back:red": ["assets/rocket_back.svg", [["#ff6b81", "#ff5a4f"], ["#e2294b", "#b5121b"]]],
+    "back:blue": ["assets/rocket_back.svg", [["#ff6b81", "#7cc0ff"], ["#e2294b", "#1f5fd6"]]],
+    "back:green": ["assets/rocket_back.svg", [["#ff6b81", "#8ff5b0"], ["#e2294b", "#17a84f"]]],
+    "back:gold": ["assets/rocket_back.svg", [["#ff6b81", "#ffe066"], ["#e2294b", "#d99a00"]]],
     "back:purple": ["assets/rocket_back.svg", [["#ff6b81", "#d2b8ff"], ["#e2294b", "#7a4bd6"]]],
+    "back:silver": ["assets/rocket_back.svg", [["#ff6b81", "#f4f7fb"], ["#e2294b", "#8c98ab"]]],
     "face:gold": ["assets/hamster_face.svg", [["#ffbb55", "#ffe680"], ["#ec8a22", "#f2b705"], ["#d9771a", "#c98f00"]]]
   };
   async function loadVariants() {
@@ -131,7 +138,7 @@
         const a = Math.random() * 6.28;
         this.particles.push({ x: this.x + Math.cos(a) * WHEEL_R, y: this.alt + Math.sin(a) * WHEEL_R, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120 + this.vy, life: 0.35, max: 0.35, c: i % 2 ? "#c9f6ff" : "#ffd23f", s: 3 });
       }
-      if ([25, 50, 100, 150, 200, 300, 400, 500].includes(res.combo)) this.addText(`${res.combo} COMBO!`, this.x, this.alt + 70, "#ffd23f", 26);
+      if ([25, 50, 100, 150, 200, 300, 400, 500].includes(res.combo)) this.addText(`${res.combo} ${TT("fx.combo", "COMBO!")}`, this.x, this.alt + 70, "#ffd23f", 26);
       Sound.tap(this.spin);
     },
     addText(t, x, y, c, size = 22) { this.texts.push({ t, x, y, c, size, life: 1.1, max: 1.1 }); },
@@ -164,18 +171,22 @@
         this.addText(`+${e.add}s`, e.x, e.y + 20, e.gold ? "#ffd23f" : "#ffffff", e.gold ? 28 : 22);
         this.burst(e.x, e.y, e.gold ? "#ffd23f" : "#fff1dc", 14, 180); Sound.seed(e.gold);
       } else if (e.type === "ring") {
-        this.addText("BOOST!", e.x, e.y + 40, "#7fe7ff", 30); this.burst(e.x, e.y, "#7fe7ff", 20, 260);
+        this.addText(TT("fx.boost", "BOOST!"), e.x, e.y + 40, "#7fe7ff", 30); this.burst(e.x, e.y, "#7fe7ff", 20, 260);
         this.flash = 0.35; this.flashColor = "127,231,255"; Sound.ring();
       } else if (e.type === "hit") {
         this.shake(10, 0.35); this.flash = 0.5; this.flashColor = "255,80,80";
         this.burst(this.x, this.alt, "#ff6b81", 18, 260); this.burst(e.x, e.y, "#ffffff", 10, 200);
-        this.addText("-3s  OUCH!", this.x, this.alt + 60, "#ff6b81", 24);
+        this.addText(`-3s  ${TT("fx.ouch", "OUCH!")}`, this.x, this.alt + 60, "#ff6b81", 24);
         if (navigator.vibrate) try { navigator.vibrate(60); } catch (err) { }
         Sound.hit();
+      } else if (e.type === "block") {
+        this.shake(4, 0.2); this.flash = 0.35; this.flashColor = "255,214,64";
+        this.burst(this.x, this.alt, "#ffd23f", 22, 280);
+        this.addText(TT("fx.shield", "SHIELD!"), this.x, this.alt + 60, "#ffd23f", 26); Sound.ring();
       } else if (e.type === "zone") {
-        this.banner = { t: e.name, life: 2.2 }; Sound.zone();
+        this.banner = { t: TT("zone." + e.name, e.name), life: 2.2 }; Sound.zone();
       } else if (e.type === "end") {
-        this.banner = { t: e.reason, life: 1.4 }; this.shake(6, 0.3);
+        this.banner = { t: REASON(e.reason), life: 1.4 }; this.shake(6, 0.3);
       } else if (e.type === "finish") this.finish();
     },
     burst(x, y, c, n, sp) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, v = sp * (0.4 + Math.random() * 0.8); this.particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v + this.vy * 0.6, life: 0.6, max: 0.6, c, s: 3 + Math.random() * 3 }); } },
@@ -311,7 +322,7 @@
       c.beginPath(); c.ellipse(0, 0, o.rx, o.ry, 0, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2); c.stroke();
       c.lineWidth = 5; c.strokeStyle = o.used ? "rgba(127,231,255,.4)" : "#7fe7ff";
       c.beginPath(); c.ellipse(0, 0, o.rx, o.ry, 0, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2); c.stroke();
-      if (!front && !o.used) { c.font = '13px "Luckiest Guy", sans-serif'; c.textAlign = "center"; c.fillStyle = "#fff"; c.fillText("BOOST", 0, -o.ry - 8); }
+      if (!front && !o.used) { c.font = '13px "Luckiest Guy", sans-serif'; c.textAlign = "center"; c.fillStyle = "#fff"; c.fillText(TT("fx.ring", "BOOST"), 0, -o.ry - 8); }
       c.restore();
     },
     drawObstacle(c, o, y) {
@@ -354,9 +365,9 @@
       c.restore();
     },
     drawRocket(c, x, y) {
-      const shieldOn = this.invuln > 0 && this.sim.opts.shield && this.time < this.sim.opts.shield + 0.05;
-      const blink = this.invuln > 0 && !shieldOn && Math.floor(this.invuln * 12) % 2 === 0;
-      const cs = this.cos || {};
+      const shieldOn = this.sim.absorb > 0;   // gold rocket: shield ready to absorb one hit
+      const blink = this.invuln > 0 && Math.floor(this.invuln * 12) % 2 === 0;
+      const cs = this.cos || {}, rk = (this.bonusRun || this.bonus || {}).rocket;
       c.save(); c.translate(x, y); c.rotate(this.tilt);
       if (blink) c.globalAlpha = 0.45;
       // flame
@@ -369,7 +380,7 @@
         c.fillStyle = "rgba(255,255,255,.8)"; c.beginPath(); c.moveTo(-w * 0.45, fy); c.quadraticCurveTo(0, fy + L * 0.5, w * 0.45, fy); c.fill();
       }
       const k = 1024 * S;
-      const sb = sprite(cs.rocket ? "back:" + cs.rocket : "back");
+      const sb = sprite(rk ? "back:" + rk : "back");
       if (sb) c.drawImage(sb, -512 * S, -480 * S, k, k);
       // spokes (rotate with wheel)
       c.save(); c.rotate(this.wheelA); c.strokeStyle = "#5b63d6"; c.lineWidth = 1.6;
@@ -401,14 +412,15 @@
       c.font = '15px "Luckiest Guy", system-ui, sans-serif'; c.lineWidth = 4;
       const best = this.mode === "daily" ? store.get("hr_best_" + this.round, 0) : store.get("hr_best_all", 0);
       const bn = this.bonusRun || this.bonus;
-      const sub = bn ? `BONUS RUN · ${bn.name.toUpperCase()}` : (this.mode === "daily" ? `DAILY #${dayNumber(this.round)} · BEST ${fmt(best)} m` : `FREE FLIGHT · BEST ${fmt(best)} m`);
-      c.strokeText(sub, W / 2, 80); c.fillStyle = bn ? "#ff9fc0" : "#ffe9a8"; c.fillText(sub, W / 2, 80);
+      const bnName = bn ? (window.HRWheel ? HRWheel.name(bn.id) : bn.name) : "";
+      const sub = bn ? `${TT("hud.bonus", "BONUS RUN")} · ${bnName.toUpperCase()}` : (this.mode === "daily" ? `${TT("hud.daily", "DAILY")} #${dayNumber(this.round)} · ${TT("hud.best", "BEST")} ${fmt(best)} m` : `${TT("hud.free", "FREE FLIGHT")} · ${TT("hud.best", "BEST")} ${fmt(best)} m`);
+      c.strokeText(sub, W / 2, 80, W - 110); c.fillStyle = bn ? "#ff9fc0" : "#ffe9a8"; c.fillText(sub, W / 2, 80, W - 110);
       // fuel bar
       const fx = 16, fy = 104, fw = W - 32, fh = 16, f = clamp(this.fuel / (START_FUEL + 6), 0, 1);
       c.fillStyle = "rgba(23,13,51,.55)"; rr(c, fx, fy, fw, fh, 8); c.fill();
       c.fillStyle = f < 0.25 ? (Math.sin(performance.now() / 90) > 0 ? "#ff3d5a" : "#ff8a1f") : "#ffd23f"; rr(c, fx + 3, fy + 3, Math.max(0, (fw - 6) * f), fh - 6, 5); c.fill();
       c.textAlign = "left"; c.font = '13px "Luckiest Guy", system-ui, sans-serif'; c.fillStyle = "#fff"; c.lineWidth = 3;
-      const ft = `SEED FUEL ${Math.max(0, this.fuel).toFixed(1)}s`; c.strokeText(ft, fx + 6, fy + 31); c.fillText(ft, fx + 6, fy + 31);
+      const ft = `${TT("hud.fuel", "SEED FUEL")} ${Math.max(0, this.fuel).toFixed(1)}s`; c.strokeText(ft, fx + 6, fy + 31); c.fillText(ft, fx + 6, fy + 31);
       c.textAlign = "right"; const tt = `🌻 ${this.seeds}   ⏱ ${Math.max(0, MAX_TIME - this.time).toFixed(0)}s`;
       c.strokeText(tt, W - fx - 4, fy + 31); c.fillText(tt, W - fx - 4, fy + 31);
       // spin meter (bottom)
@@ -417,16 +429,16 @@
       const sg = c.createLinearGradient(sx, 0, sx + sw, 0); sg.addColorStop(0, "#38d9ff"); sg.addColorStop(0.6, "#ffd23f"); sg.addColorStop(1, "#ff3d5a");
       c.fillStyle = sg; rr(c, sx + 2, sy + 2, Math.max(0, (sw - 4) * s), 10, 5); c.fill();
       c.textAlign = "left"; c.fillStyle = "#fff"; c.font = '13px "Luckiest Guy", system-ui, sans-serif';
-      c.strokeText("WHEEL SPIN", sx + 4, sy - 6); c.fillText("WHEEL SPIN", sx + 4, sy - 6);
+      const ws = TT("hud.spin", "WHEEL SPIN"); c.strokeText(ws, sx + 4, sy - 6); c.fillText(ws, sx + 4, sy - 6);
       if (this.combo >= 5 && performance.now() - this.lastTapMs < 350) {
         c.textAlign = "right"; c.font = '18px "Luckiest Guy", system-ui, sans-serif'; c.fillStyle = "#ffd23f";
-        const ct = `x${this.combo} COMBO`; c.strokeText(ct, sx + sw - 2, sy - 6); c.fillText(ct, sx + sw - 2, sy - 6);
+        const ct = `x${this.combo} ${TT("hud.combo", "COMBO")}`; c.strokeText(ct, sx + sw - 2, sy - 6); c.fillText(ct, sx + sw - 2, sy - 6);
       }
       // zone banner
       if (this.banner) {
         const b = this.banner, a = clamp(Math.min(b.life, 2.2 - b.life + 0.3) * 3, 0, 1);
         c.globalAlpha = a; c.textAlign = "center"; c.font = '34px "Luckiest Guy", system-ui, sans-serif'; c.lineWidth = 7; c.strokeStyle = "#170d33"; c.fillStyle = "#ffd23f";
-        c.strokeText(b.t, W / 2, H * 0.36); c.fillText(b.t, W / 2, H * 0.36); c.globalAlpha = 1;
+        c.strokeText(b.t, W / 2, H * 0.36, W - 24); c.fillText(b.t, W / 2, H * 0.36, W - 24); c.globalAlpha = 1;
       }
     }
   };
@@ -481,12 +493,12 @@
     el.goReason.textContent = reasons[G.endReason] || G.endReason;
     el.goStats.textContent = `🌻 ${G.seeds} ${T("game.seeds", "seeds")} · 💥 ${G.hits} ${T("game.bumps", "bumps")} · 🔥 ${T("game.combo", "best combo")} x${G.maxCombo}`;
     const best = G.mode === "daily" ? store.get("hr_best_" + G.round, 0) : store.get("hr_best_all", 0);
-    el.goBest.textContent = G.mode === "daily" ? `${T("game.todayBest", "Today's best")}: ${fmt(best)} m · ${T("game.allTime", "All-time")}: ${fmt(store.get("hr_best_all", 0))} m` : `${T("game.allTime", "All-time")}: ${fmt(best)} m`;
+    el.goBest.textContent = G.mode === "daily" ? `${T("game.todayBest", "Today's best")}${C()}${fmt(best)} m · ${T("game.allTime", "All-time")}${C()}${fmt(store.get("hr_best_all", 0))} m` : `${T("game.allTime", "All-time")}${C()}${fmt(best)} m`;
     el.goBadge.classList.toggle("hidden", !(G.newDay || G.newAll || G.newBonus));
     el.goBadge.textContent = G.newBonus ? T("game.newBonus", "NEW BONUS BEST!") : G.newAll ? T("game.newAll", "NEW ALL-TIME BEST!") : T("game.newDay", "NEW DAILY BEST!");
     const bn = G.bonusRun;
     el.goBonus.classList.toggle("hidden", !bn);
-    el.goBonus.textContent = bn ? `🎁 ${T("game.bonusRun", "Bonus run")}: ${bn.emoji} ${window.HRWheel ? HRWheel.name(bn.id) : bn.name}. ${T("game.notCounted", "Not counted in your normal best.")} ${T("game.bonusBest", "Bonus best")}: ${fmt(store.get("hr_best_bonus", 0))} m` : "";
+    el.goBonus.textContent = bn ? `🎁 ${T("game.bonusRun", "Bonus run")}${C()}${bn.emoji} ${window.HRWheel ? HRWheel.name(bn.id) : bn.name}. ${T("game.notCounted", "Not counted in your normal best.")} ${T("game.bonusBest", "Bonus best")}${C()}${fmt(store.get("hr_best_bonus", 0))} m` : "";
     el.goTitle.textContent = G.mode === "daily" ? `${T("game.daily", "Daily Challenge")} #${dayNumber(G.round)}` : T("game.freeTitle", "Free Flight");
     el.over.classList.remove("hidden");
     setTimeout(() => el.again && el.again.focus({ preventScroll: true }), 50);
@@ -500,12 +512,12 @@
     const b = store.get("hr_best_" + d, 0);
     const W8 = window.HRWheel, bn = G.state === "ready" ? G.bonus : null, cs = G.cos || {};
     const bits = [];
-    if (bn) bits.push(`🎁 ${T("game.bonusFor", "Bonus for this run")}: ${bn.emoji} ${W8 ? W8.name(bn.id) : bn.name} (${T("game.notCountedShort", "not counted in your normal best")})`);
+    if (bn) bits.push(`🎁 ${T("game.bonusFor", "Bonus for this run")}${C()}${bn.emoji} ${W8 ? W8.name(bn.id) : bn.name}${C()}${W8 ? W8.effect(bn.id) : bn.effect} (${T("game.notCountedShort", "not counted in your normal best")})`);
     if (cs.id) bits.push(`${cs.emoji} ${W8 ? W8.name(cs.id) : cs.name} · ${T("game.looksOnly", "looks only")}`);
     G.el.startBonus.textContent = bits.join(" · "); G.el.startBonus.hidden = !bits.length;
     G.el.startWheel.textContent = `🎡 ${T("game.wheelReady", "Your free daily Lucky Wheel spin is ready")} →`;
     G.el.startWheel.hidden = !(W8 && W8.canSpin());
-    G.el.startBest.textContent = b ? `${T("game.bestToday", "Your best this round")}: ${fmt(b)} m` : `${T("game.sameCourse", "Same course for everyone. New course at")} ${endLocal} (${T("game.yourTime", "your time")}).`;
+    G.el.startBest.textContent = b ? `${T("game.bestToday", "Your best this round")}${C()}${fmt(b)} m` : `${T("game.sameCourse", "Same course for everyone. New course at")} ${endLocal} (${T("game.yourTime", "your time")}).`;
   }
   function restart(mode) {
     G.mode = mode || "daily"; G.reset();
@@ -516,7 +528,8 @@
 
   // ---------- share + score card ----------
   function shareText() {
-    return `I scored ${fmt(G.score)} m in Hamster Rocket 🐹🚀${G.bonusRun ? " (Lucky Wheel bonus run)" : ""} Can you beat me?`;
+    const b = G.bonusRun ? TT("share.bonus", " (Lucky Wheel bonus run)") : "";
+    return TT("share.text", "I scored {n} m in Hamster Rocket 🐹🚀{b} Can you beat me?").replace("{n}", fmt(G.score)).replace("{b}", b);
   }
   function shareX() {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(CFG.SITE_URL || location.href.split("#")[0])}`;
@@ -533,13 +546,13 @@
     c.globalAlpha = 1;
     if (sprites.logo) { c.save(); c.beginPath(); c.arc(300, 340, 230, 0, 6.28); c.clip(); c.drawImage(sprites.logo, 70, 110, 460, 460); c.restore(); c.lineWidth = 10; c.strokeStyle = "#38d9ff"; c.beginPath(); c.arc(300, 340, 232, 0, 6.28); c.stroke(); }
     c.textAlign = "left"; c.lineJoin = "round";
-    const txt = (t, x, y, font, fill, stroke = 10) => { c.font = font; c.lineWidth = stroke; c.strokeStyle = "#170d33"; c.strokeText(t, x, y); c.fillStyle = fill; c.fillText(t, x, y); };
+    const txt = (t, x, y, font, fill, stroke = 10) => { const mw = cw - x - 30; c.font = font; c.lineWidth = stroke; c.strokeStyle = "#170d33"; c.strokeText(t, x, y, mw); c.fillStyle = fill; c.fillText(t, x, y, mw); };
     txt((CFG.NAME || "Hamster Rocket").toUpperCase(), 590, 150, '64px "Luckiest Guy", sans-serif', "#ffd23f");
-    txt((G.mode === "daily" ? `DAILY CHALLENGE #${dayNumber(G.round)} · ${G.round}` : "FREE FLIGHT") + (G.bonusRun ? " · BONUS RUN" : ""), 592, 200, '30px "Luckiest Guy", sans-serif', "#c9f6ff", 7);
-    txt("MY HAMSTER FLEW", 592, 290, '40px "Luckiest Guy", sans-serif', "#ffffff", 8);
+    txt((G.mode === "daily" ? `${TT("card.daily", "DAILY CHALLENGE")} #${dayNumber(G.round)} · ${G.round}` : TT("card.free", "FREE FLIGHT")) + (G.bonusRun ? ` · ${TT("card.bonus", "BONUS RUN")}` : ""), 592, 200, '30px "Luckiest Guy", sans-serif', "#c9f6ff", 7);
+    txt(TT("card.flew", "MY HAMSTER FLEW"), 592, 290, '40px "Luckiest Guy", sans-serif', "#ffffff", 8);
     txt(`${fmt(G.score)} m`, 586, 410, '120px "Luckiest Guy", sans-serif', "#ffffff", 14);
-    txt(`🌻 ${G.seeds} seeds   🔥 combo x${G.maxCombo}`, 592, 475, '600 34px "Baloo 2", sans-serif', "#ffe9a8", 6);
-    txt("Can you fly higher?", 592, 545, '40px "Luckiest Guy", sans-serif', "#ff8fa6", 8);
+    txt(`🌻 ${G.seeds} ${TT("card.seeds", "seeds")}   🔥 ${TT("card.combo", "combo")} x${G.maxCombo}`, 592, 475, '600 34px "Baloo 2", sans-serif', "#ffe9a8", 6);
+    txt(TT("card.higher", "Can you fly higher?"), 592, 545, '40px "Luckiest Guy", sans-serif', "#ff8fa6", 8);
     const foot = (CFG.SITE_URL || location.host).replace(/^https?:\/\//, "").replace(/\/$/, "");
     txt(foot, 592, 615, '600 28px "Baloo 2", sans-serif', "#c9c9ff", 5);
     return cv;
@@ -576,7 +589,7 @@
     G.reset(); resize(); bindInput(); updateStartCard();
     loadVariants();
     window.addEventListener("hr:wheel", () => { if (G.state === "ready") G.reset(); else G.cos = window.HRWheel ? HRWheel.cosmetics() : {}; updateStartCard(); });
-    window.addEventListener("hr:lang", () => updateStartCard());
+    window.addEventListener("hr:lang", () => { updateStartCard(); syncMute(); if (G.state === "over") showGameOver(); });
     window.addEventListener("resize", resize);
     if (window.ResizeObserver) new ResizeObserver(resize).observe(G.el.wrap);
     if (window.IntersectionObserver) new IntersectionObserver(es => { G.inView = es[0].isIntersecting && es[0].intersectionRatio > 0.45; }, { threshold: [0, 0.45, 0.8] }).observe(G.el.stage);
@@ -585,7 +598,7 @@
     $("go-free").addEventListener("click", () => restart("free"));
     $("go-share").addEventListener("click", shareX);
     $("go-card").addEventListener("click", scoreCard);
-    const syncMute = () => { G.el.mute.textContent = Sound.muted ? "🔇" : "🔊"; G.el.mute.setAttribute("aria-label", Sound.muted ? "Unmute sound" : "Mute sound"); };
+    const syncMute = () => { G.el.mute.textContent = Sound.muted ? "🔇" : "🔊"; G.el.mute.setAttribute("aria-label", Sound.muted ? TT("a11y.unmute", "Unmute sound") : TT("a11y.mute", "Mute sound")); };
     G.el.mute.addEventListener("click", e => { Sound.muted = !Sound.muted; store.set("hr_muted", Sound.muted); syncMute(); Sound.init(); e.currentTarget.blur(); });
     syncMute();
     requestAnimationFrame(frame);
