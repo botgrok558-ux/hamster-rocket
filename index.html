@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hamster Rocket: tap, spin, fly</title>
+<meta name="description" content="Hamster Rocket: a free browser mini-game for mobile and PC. One tiny hamster, one rocket-powered wheel. Just a game for fun.">
+<meta name="theme-color" content="#1b1d6b">
+<meta property="og:title" content="Hamster Rocket">
+<meta property="og:description" content="Tap, spin, fly. A free browser mini-game: fly the hamster as high as you can. Just a game for fun.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://botgrok558-ux.github.io/hamster-rocket-demo/">
+<meta property="og:image" content="https://botgrok558-ux.github.io/hamster-rocket-demo/assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/logo_180.png">
+<link rel="preload" href="assets/luckiest-guy.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script src="i18n.js"></script>
+</head>
+<body>
+<header class="nav" id="nav">
+  <a class="brand" href="#top"><img src="assets/logo_64.png" alt="" width="36" height="36"><span>Hamster Rocket</span></a>
+  <nav id="nav-menu" aria-label="Main">
+    <a href="#play">🎮 <span data-l="en">Game</span><span data-l="de">Spiel</span></a>
+    <a href="#about">🐹 <span data-l="en">About</span><span data-l="de">Über</span></a>
+    <a class="btn btn-small btn-x nav-x-m" data-social="X_URL" href="#socials">𝕏 <span data-l="en">Follow</span><span data-l="de">Folgen</span></a>
+  </nav>
+  <div class="lang" role="group" aria-label="Language / Sprache"><button type="button" data-lang-btn="de" aria-pressed="false">DE</button><button type="button" data-lang-btn="en" aria-pressed="false">EN</button></div>
+  <a class="btn btn-small btn-x nav-x" data-social="X_URL" href="#socials">𝕏 <span data-l="en">Follow</span><span data-l="de">Folgen</span></a>
+  <button class="burger" id="burger" type="button" aria-controls="nav-menu" aria-expanded="false" data-i18n-attr="aria-label|Open menu|Menü öffnen" aria-label="Open menu"><span></span><span></span><span></span></button>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="hero-art"><img src="assets/logo_512.png" alt="Cartoon hamster flying a rocket-powered hamster wheel" width="512" height="512"></div>
+    <div class="hero-text">
+      <p class="kicker"><span data-l="en">Free browser mini-game · mobile &amp; PC</span><span data-l="de">Gratis Browser-Minigame · Handy &amp; PC</span></p>
+      <h1>Hamster<br>Rocket</h1>
+      <p data-l="en" class="tagline">One tiny hamster. One rocket-powered wheel. Tap as fast as you can and see how high it flies.</p><p data-l="de" class="tagline">Ein kleiner Hamster. Ein Laufrad mit Raketenantrieb. Tippe so schnell du kannst und schau, wie hoch er fliegt.</p>
+      <p class="fun-note"><span data-l="en">🎈 Just a game for fun. No prizes, no rewards, no tokens to win.</span><span data-l="de">🎈 Nur ein Spiel zum Spaß. Keine Preise, keine Belohnungen, keine Tokens zu gewinnen.</span></p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#play">🚀 <span data-l="en">Play the game</span><span data-l="de">Jetzt spielen</span></a>
+        <a class="btn btn-ghost" href="#about">🐹 <span data-l="en">About</span><span data-l="de">Über das Spiel</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="game-section" id="play">
+    <div class="game-side game-side-left">
+      <h2><span data-l="en">How to play</span><span data-l="de">So geht's</span></h2>
+      <p data-l="en">Every day brings <b>a new course</b>. A new one starts every day at 21:00 New York time (<span data-round-local>your time</span>).</p><p data-l="de">Jeden Tag gibt es <b>eine neue Strecke</b>. Sie wechselt jeden Tag um 21:00 New Yorker Zeit (<span data-round-local>deine Zeit</span>).</p>
+      <ul class="howto" data-l="en">
+        <li><b>Tap / click / Space</b> as fast as you can to spin the wheel. More spin, more thrust.</li>
+        <li><b>Steer:</b> tap left or right of the hamster (or use ← → / A D).</li>
+        <li><b>Grab sunflower seeds 🌻</b> for fuel. Golden seeds give extra.</li>
+        <li><b>Dodge</b> pigeons, storms, drones, satellites and asteroids.</li>
+        <li><b>Boost rings</b> give a speed burst.</li>
+      </ul>
+      <ul class="howto" data-l="de">
+        <li><b>Tippe / klicke / Leertaste</b> so schnell du kannst, um das Rad zu drehen. Mehr Drehung, mehr Schub.</li>
+        <li><b>Lenken:</b> links oder rechts vom Hamster tippen (oder ← → / A D).</li>
+        <li><b>Sammle Sonnenblumenkerne 🌻</b> als Treibstoff. Goldene geben extra.</li>
+        <li><b>Weiche aus:</b> Tauben, Gewitter, Drohnen, Satelliten und Asteroiden.</li>
+        <li><b>Boost-Ringe</b> geben einen Geschwindigkeitsschub.</li>
+      </ul>
+    </div>
+    <div class="hr-wrap" id="hr-wrap">
+      <div class="hr-stage" id="hr-stage">
+        <canvas id="hr-canvas" aria-label="Hamster Rocket game. Tap or press space to fly."></canvas>
+        <button class="hr-mute" id="hr-mute" type="button" aria-label="Mute sound">🔊</button>
+        <div class="hr-overlay" id="hr-start">
+          <div class="card">
+            <p class="hr-mode"></p>
+            <h3><span data-l="en">Tap to launch!</span><span data-l="de">Tippen zum Start!</span></h3>
+            <p id="start-day" class="muted">Daily Challenge</p>
+            <p class="keys" data-l="en"><span class="key">TAP</span> or <span class="key">SPACE</span> to spin<br><span class="key">◀</span> tap left / right <span class="key">▶</span> to steer</p>
+            <p class="keys" data-l="de"><span class="key">TIPPEN</span> oder <span class="key">LEERTASTE</span><br><span class="key">◀</span> links / rechts lenken <span class="key">▶</span></p>
+            <p id="start-best" class="muted small"></p>
+          </div>
+        </div>
+        <div class="hr-overlay hidden" id="hr-over">
+          <div class="card">
+            <p class="muted" id="go-title">Daily Challenge</p>
+            <p class="go-reason" id="go-reason"></p>
+            <p class="go-score" id="go-score">0 m</p>
+            <p class="go-badge hidden" id="go-badge">NEW BEST!</p>
+            <p class="small" id="go-stats"></p>
+            <p class="small muted" id="go-best"></p>
+            <div class="go-buttons">
+              <button class="btn btn-primary" id="go-again" type="button">↻ <span data-l="en">Fly again</span><span data-l="de">Nochmal</span></button>
+              <button class="btn btn-x" id="go-share" type="button"><span data-l="en">Share on 𝕏</span><span data-l="de">Auf 𝕏 teilen</span></button>
+              <button class="btn btn-ghost" id="go-card" type="button">⬇ <span data-l="en">Score card</span><span data-l="de">Score-Karte</span></button>
+              <button class="btn btn-link" id="go-free" type="button"><span data-l="en">Free flight (random course)</span><span data-l="de">Freier Flug (zufällige Strecke)</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="game-side game-side-right">
+      <h2><span data-l="en">Your scores</span><span data-l="de">Deine Punkte</span></h2>
+      <p data-l="en">Your best scores are saved only on this device, in your browser. Nothing is sent anywhere. Beat your own record and challenge your friends.</p><p data-l="de">Deine Bestwerte werden nur auf diesem Gerät in deinem Browser gespeichert. Es wird nichts verschickt. Knack deinen eigenen Rekord und fordere deine Freunde heraus.</p>
+      <p data-l="en" class="muted small">Free to play. No purchase needed.</p><p data-l="de" class="muted small">Kostenlos spielbar. Kein Kauf nötig.</p>
+    </div>
+  </section>
+
+  <section class="about" id="about">
+    <h2><span data-l="en">What is Hamster Rocket?</span><span data-l="de">Was ist Hamster Rocket?</span></h2>
+    <div class="grid3">
+      <div class="tile"><span class="emoji">🐹</span><h3><span data-l="en">A hamster with a dream</span><span data-l="de">Ein Hamster mit einem Traum</span></h3><p data-l="en">Every hamster runs in a wheel. This one bolted a rocket to it. A silly, wholesome little game about putting in the effort, one tap at a time.</p><p data-l="de">Jeder Hamster rennt im Laufrad. Dieser hat eine Rakete drangeschraubt. Ein albernes, liebenswertes kleines Spiel übers Dranbleiben, ein Tipp nach dem anderen.</p></div>
+      <div class="tile"><span class="emoji">🎮</span><h3><span data-l="en">A daily game</span><span data-l="de">Ein tägliches Spiel</span></h3><p data-l="en">One new course every day. Free to play, beat your friends, come back tomorrow.</p><p data-l="de">Jeden Tag eine neue Strecke. Kostenlos spielen, Freunde schlagen, morgen wiederkommen.</p></div>
+      <div class="tile"><span class="emoji">🌻</span><h3><span data-l="en">Just for fun</span><span data-l="de">Einfach zum Spaß</span></h3><p data-l="en">Just a game for fun. No prizes, no rewards, no tokens to win.</p><p data-l="de">Nur ein Spiel zum Spaß. Keine Preise, keine Belohnungen, keine Tokens zu gewinnen.</p></div>
+    </div>
+  </section>
+
+  <section class="socials" id="socials">
+    <h2><span data-l="en">Follow the hamster</span><span data-l="de">Folge dem Hamster</span></h2>
+    <div class="social-row">
+      <a class="btn btn-ghost" data-social="X_URL" href="#socials">𝕏 X: <em>@HamsterRocketX</em></a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <p class="disclaimer" data-l="en"><b>Just a game for fun. No prizes, no rewards, no tokens to win.</b> Hamster Rocket is a free browser game. Nothing to buy, nothing to sign up for.</p>
+  <p class="disclaimer" data-l="de"><b>Nur ein Spiel zum Spaß. Keine Preise, keine Belohnungen, keine Tokens zu gewinnen.</b> Hamster Rocket ist ein kostenloses Browserspiel. Nichts zu kaufen, keine Anmeldung.</p>
+  <p data-l="en" class="muted small">Not affiliated with Hamster Kombat or any other project. Original artwork. Scores are stored only in your browser.</p><p data-l="de" class="muted small">Nicht verbunden mit Hamster Kombat oder anderen Projekten. Eigene Grafiken. Punkte werden nur in deinem Browser gespeichert.</p>
+  <p class="muted small">© 2026 Hamster Rocket</p>
+</footer>
+
+<script src="config.js"></script>
+<script src="sim.js"></script>
+<script src="main.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
