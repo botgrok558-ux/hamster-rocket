@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hamster Stack · Hamster Rocket games</title>
+<meta name="description" content="Hamster Stack: a free one-tap stacking game for mobile and PC. Drop sunflower seed blocks, line them up perfectly for combos and build the tallest tower. Just a game for fun.">
+<meta name="theme-color" content="#1b1d6b">
+<meta property="og:title" content="Hamster Stack">
+<meta property="og:description" content="One tap, one block. Line them up perfectly, chain combos and build the tallest sunflower seed tower. Just a game for fun.">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://botgrok558-ux.github.io/hamster-rocket-demo/stack/">
+<meta property="og:url" content="https://botgrok558-ux.github.io/hamster-rocket-demo/stack/">
+<meta property="og:image" content="https://botgrok558-ux.github.io/hamster-rocket-demo/assets/og-stack.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+<link rel="apple-touch-icon" href="../assets/logo_180.png">
+<link rel="preload" href="../assets/luckiest-guy.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script src="../i18n.js"></script>
+</head>
+<body>
+<header class="bar">
+  <a class="back-btn" id="btn-back" href="../#games" data-i18n-attr="aria-label|Back to all games|Zurück zu allen Spielen|Retour à tous les jeux" aria-label="Back to all games"><span aria-hidden="true">←</span> <span data-l="en">Games</span><span data-l="de">Spiele</span><span data-l="fr">Jeux</span></a>
+  <a class="brand" href="../" aria-label="Hamster Stack"><img src="../assets/logo_64.png" alt="" width="34" height="34"><span class="brand-name">Hamster <b>Stack</b></span></a>
+  <span class="spacer"></span>
+  <div class="lang" role="group" aria-label="Language / Sprache / Langue"><button type="button" data-lang-btn="de" aria-pressed="false">DE</button><button type="button" data-lang-btn="en" aria-pressed="false">EN</button><button type="button" data-lang-btn="fr" aria-pressed="false">FR</button></div>
+  <a class="x-link" href="https://x.com/HamsterRocketX" target="_blank" rel="noopener noreferrer" data-i18n-attr="aria-label|Hamster Rocket on X|Hamster Rocket auf X|Hamster Rocket sur X" aria-label="Hamster Rocket on X"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="#fff" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+</header>
+
+<main class="stage" id="stage">
+  <canvas id="game" aria-label="Hamster Stack game. Tap, click or press Space to drop the block."></canvas>
+
+  <div class="hud-btns">
+    <button type="button" class="icon-btn hidden" id="btn-pause" data-i18n-attr="aria-label|Pause|Pause|Pause" aria-label="Pause">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="5" y="4" width="5" height="16" rx="1.5" fill="#170d33"/><rect x="14" y="4" width="5" height="16" rx="1.5" fill="#170d33"/></svg>
+    </button>
+    <button type="button" class="icon-btn" id="btn-mute" aria-label="Mute">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3z" fill="#170d33"/><g id="snd-on" fill="none" stroke="#170d33" stroke-width="2.2" stroke-linecap="round"><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/></g><g id="snd-off" stroke="#e2294b" stroke-width="2.4" stroke-linecap="round"><path d="M15 9l6 6M21 9l-6 6"/></g></svg>
+    </button>
+  </div>
+
+  <!-- start -->
+  <div class="overlay" id="ov-start">
+    <div class="card">
+      <img class="card-logo" src="../assets/hamster_rocket.svg" alt="" width="96" height="96">
+      <h1>Hamster <span>Stack</span></h1>
+      <p class="lead"><span data-l="en">Sunflower seed blocks slide in. Drop them on the tower, the overhang gets chopped off. How high can you stack?</span><span data-l="de">Sonnenblumenkern-Blöcke gleiten heran. Lass sie auf den Turm fallen, der Überstand wird abgeschnitten. Wie hoch schaffst du es?</span><span data-l="fr">Des blocs de graines de tournesol arrivent en glissant. Lâche-les sur la tour, ce qui dépasse est coupé. Jusqu’où peux-tu empiler&nbsp;?</span></p>
+      <ul class="controls touch-only">
+        <li><span class="key">👆</span> <span data-l="en">Tap anywhere to drop the block</span><span data-l="de">Irgendwo tippen, um den Block fallen zu lassen</span><span data-l="fr">Tape n’importe où pour lâcher le bloc</span></li>
+      </ul>
+      <ul class="controls mouse-only">
+        <li><span class="key">🖱</span> / <span class="key">SPACE</span> <span data-l="en">click or press Space to drop</span><span data-l="de">klicken oder Leertaste zum Fallenlassen</span><span data-l="fr">clique ou appuie sur Espace pour lâcher</span></li>
+        <li><span class="key">P</span> <span data-l="en">pause</span><span data-l="de">Pause</span><span data-l="fr">pause</span> · <span class="key">M</span> <span data-l="en">sound</span><span data-l="de">Ton</span><span data-l="fr">son</span></li>
+      </ul>
+      <p class="tips">✨ <span data-l="en">Perfect drops keep the full width and build a combo. From 3 in a row, the block grows back!</span><span data-l="de">Perfekte Drops behalten die volle Breite und bauen eine Kombo auf. Ab 3 in Folge wächst der Block wieder!</span><span data-l="fr">Les lâchers parfaits gardent toute la largeur et font monter le combo. Dès 3 d’affilée, le bloc regrandit&nbsp;!</span></p>
+      <button type="button" class="btn btn-primary btn-big" id="btn-play">▶ <span data-l="en">Play</span><span data-l="de">Spielen</span><span data-l="fr">Jouer</span></button>
+      <p class="best-line" id="start-best"></p>
+      <p class="fun-note"><span data-l="en">Just a game for fun. No prizes, no rewards, no tokens to win.</span><span data-l="de">Nur ein Spiel zum Spaß. Keine Preise, keine Belohnungen, keine Tokens zu gewinnen.</span><span data-l="fr">Juste un jeu pour s’amuser. Pas de prix, pas de récompenses, aucun token à gagner.</span></p>
+    </div>
+  </div>
+
+  <!-- pause -->
+  <div class="overlay hidden" id="ov-pause">
+    <div class="card card-small">
+      <h2><span data-l="en">Paused</span><span data-l="de">Pause</span><span data-l="fr">Pause</span></h2>
+      <div class="btn-col">
+        <button type="button" class="btn btn-primary btn-big" id="btn-resume">▶ <span data-l="en">Resume</span><span data-l="de">Weiter</span><span data-l="fr">Reprendre</span></button>
+        <button type="button" class="btn btn-ghost" id="btn-restart">↻ <span data-l="en">Restart</span><span data-l="de">Neu starten</span><span data-l="fr">Recommencer</span></button>
+      </div>
+      <p class="fun-note"><span data-l="en">Just a game for fun. No prizes, no rewards, no tokens to win.</span><span data-l="de">Nur ein Spiel zum Spaß. Keine Preise, keine Belohnungen, keine Tokens zu gewinnen.</span><span data-l="fr">Juste un jeu pour s’amuser. Pas de prix, pas de récompenses, aucun token à gagner.</span></p>
+    </div>
+  </div>
+
+  <!-- game over -->
+  <div class="overlay hidden" id="ov-over">
+    <div class="card">
+      <h2 class="go-title"><span data-l="en">Tower down!</span><span data-l="de">Turm verfehlt!</span><span data-l="fr">Raté&nbsp;!</span></h2>
+      <p class="go-score" id="go-score">0</p>
+      <p class="go-label"><span data-l="en">blocks stacked</span><span data-l="de">Blöcke gestapelt</span><span data-l="fr">blocs empilés</span></p>
+      <p class="go-badge hidden" id="go-newbest"><span data-l="en">NEW BEST!</span><span data-l="de">NEUER BESTWERT!</span><span data-l="fr">NOUVEAU RECORD&nbsp;!</span></p>
+      <div class="go-stats">
+        <div><b id="go-perfects">0</b><span data-l="en">perfect drops</span><span data-l="de">perfekte Drops</span><span data-l="fr">lâchers parfaits</span></div>
+        <div><b id="go-combo">0</b><span data-l="en">best combo</span><span data-l="de">beste Kombo</span><span data-l="fr">meilleur combo</span></div>
+      </div>
+      <p class="best-line" id="go-best"></p>
+      <div class="btn-col">
+        <button type="button" class="btn btn-primary btn-big" id="btn-again">↻ <span data-l="en">Play again</span><span data-l="de">Nochmal</span><span data-l="fr">Rejouer</span></button>
+        <button type="button" class="btn btn-x" id="btn-share"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="#fff" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> <span data-l="en">Share on X</span><span data-l="de">Auf X teilen</span><span data-l="fr">Partager sur X</span></button>
+      </div>
+      <p class="fun-note"><span data-l="en">Just a game for fun. No prizes, no rewards, no tokens to win.</span><span data-l="de">Nur ein Spiel zum Spaß. Keine Preise, keine Belohnungen, keine Tokens zu gewinnen.</span><span data-l="fr">Juste un jeu pour s’amuser. Pas de prix, pas de récompenses, aucun token à gagner.</span></p>
+    </div>
+  </div>
+
+  <noscript><div class="overlay"><div class="card"><p>Please enable JavaScript to play. · Bitte JavaScript aktivieren. · Active JavaScript pour jouer.</p></div></div></noscript>
+</main>
+
+<script src="stack.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

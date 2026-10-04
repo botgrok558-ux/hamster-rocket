@@ -1,5 +1,5 @@
 /* ===========================================================
-   Hamster Rocket (demo): site config.
+   Hamster Rocket: site config.
    Just a game for fun. No prizes, no rewards, no tokens to win.
    =========================================================== */
 window.HR_CONFIG = {

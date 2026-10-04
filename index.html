@@ -4,11 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Hamster Rocket: tap, spin, fly</title>
-<meta name="description" content="Hamster Rocket: a free browser mini-game for mobile and PC. One tiny hamster, one rocket-powered wheel. Just a game for fun.">
+<meta name="description" content="Hamster Rocket: free browser mini-games for mobile and PC. Rocket flight with a daily course and Lucky Wheel, plus Arena, Stack and Dash. Just a game for fun.">
 <meta name="theme-color" content="#1b1d6b">
 <meta property="og:title" content="Hamster Rocket">
 <meta property="og:description" content="Tap, spin, fly. A free browser mini-game: fly the hamster as high as you can. Just a game for fun.">
 <meta property="og:type" content="website">
+<link rel="canonical" href="https://botgrok558-ux.github.io/hamster-rocket-demo/">
 <meta property="og:url" content="https://botgrok558-ux.github.io/hamster-rocket-demo/">
 <meta property="og:image" content="https://botgrok558-ux.github.io/hamster-rocket-demo/assets/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -22,7 +23,8 @@
 <header class="nav" id="nav">
   <a class="brand" href="#top"><img src="assets/logo_64.png" alt="" width="36" height="36"><span>Hamster Rocket</span></a>
   <nav id="nav-menu" aria-label="Main">
-    <a href="#play">🎮 <span data-l="en">Game</span><span data-l="de">Spiel</span><span data-l="fr">Jeu</span></a>
+    <a href="#games">🕹️ <span data-l="en">Games</span><span data-l="de">Spiele</span><span data-l="fr">Jeux</span></a>
+    <a href="#play">🚀 Rocket</a>
     <a href="#wheel">🎡 <span data-l="en">Lucky Wheel</span><span data-l="de">Glücksrad</span><span data-l="fr">Roue de la chance</span></a>
     <a href="#about">🐹 <span data-l="en">About</span><span data-l="de">Über</span><span data-l="fr">À propos</span></a>
     <a class="btn btn-small btn-x nav-x-m" data-social="X_URL" href="#socials">𝕏 <span data-l="en">Follow</span><span data-l="de">Folgen</span><span data-l="fr">Suivre</span></a>
@@ -42,9 +44,58 @@
       <p class="fun-note"><span data-l="en">🎈 Just a game for fun. No prizes, no rewards, no tokens to win.</span><span data-l="de">🎈 Nur ein Spiel zum Spaß. Keine Preise, keine Belohnungen, keine Tokens zu gewinnen.</span><span data-l="fr">🎈 Juste un jeu pour s’amuser. Pas de prix, pas de récompenses, aucun token à gagner.</span></p>
       <div class="cta">
         <a class="btn btn-primary" href="#play">🚀 <span data-l="en">Play the game</span><span data-l="de">Jetzt spielen</span><span data-l="fr">Jouer</span></a>
+        <a class="btn btn-ghost" href="#games">🕹️ <span data-l="en">All 4 games</span><span data-l="de">Alle 4 Spiele</span><span data-l="fr">Les 4 jeux</span></a>
         <a class="btn btn-ghost" href="#wheel">🎡 <span data-l="en">Lucky Wheel</span><span data-l="de">Glücksrad</span><span data-l="fr">Roue de la chance</span></a>
       </div>
     </div>
+  </section>
+
+  <section class="games" id="games" aria-labelledby="games-title">
+    <h2 id="games-title">🕹️ <span data-l="en">Games</span><span data-l="de">Spiele</span><span data-l="fr">Jeux</span></h2>
+    <p class="games-lead"><span data-l="en">One hamster, four free mini-games. Pick one and play right here in your browser, on mobile or PC.</span><span data-l="de">Ein Hamster, vier kostenlose Minispiele. Such dir eins aus und spiel direkt hier im Browser, auf Handy oder PC.</span><span data-l="fr">Un hamster, quatre mini-jeux gratuits. Choisis-en un et joue directement dans ton navigateur, sur mobile ou PC.</span></p>
+    <div class="games-grid">
+      <article class="game-card" data-game="rocket">
+        <img class="gc-shot" src="assets/games/rocket.jpg" alt="Hamster Rocket: the hamster flies its rocket wheel through the sky" width="640" height="400" loading="lazy" decoding="async">
+        <div class="gc-body">
+          <h3>Hamster Rocket</h3>
+          <p class="gc-tag"><span data-l="en">Main game · Lucky Wheel</span><span data-l="de">Hauptspiel · Glücksrad</span><span data-l="fr">Jeu principal · Roue de la chance</span></p>
+          <p class="gc-desc"><span data-l="en">Tap to spin the rocket wheel and fly as high as you can. A new course every day.</span><span data-l="de">Tippe, dreh das Raketenrad und flieg so hoch du kannst. Jeden Tag eine neue Strecke.</span><span data-l="fr">Tape pour faire tourner la roue-fusée et vole le plus haut possible. Un nouveau parcours chaque jour.</span></p>
+          <p class="gc-best" data-best="rocket"></p>
+          <a class="btn btn-primary gc-play" href="#play" data-play="rocket">▶ <span data-l="en">Play</span><span data-l="de">Spielen</span><span data-l="fr">Jouer</span></a>
+        </div>
+      </article>
+      <article class="game-card" data-game="arena">
+        <img class="gc-shot" src="assets/games/arena.jpg" alt="Hamster Rocket Arena: the rocket hamster surrounded by cartoon cats" width="640" height="400" loading="lazy" decoding="async">
+        <div class="gc-body">
+          <h3>Hamster Rocket Arena</h3>
+          <p class="gc-tag"><span data-l="en">Survival shooter</span><span data-l="de">Survival-Shooter</span><span data-l="fr">Jeu de survie</span></p>
+          <p class="gc-desc"><span data-l="en">Survive endless cat hordes, blast sunflower seeds and pick upgrades.</span><span data-l="de">Überlebe endlose Katzen-Horden, schieß mit Sonnenblumenkernen und wähle Upgrades.</span><span data-l="fr">Survis aux hordes de chats, tire des graines de tournesol et choisis des améliorations.</span></p>
+          <p class="gc-best" data-best="arena"></p>
+          <a class="btn btn-primary gc-play" href="arena/" data-play="arena">▶ <span data-l="en">Play</span><span data-l="de">Spielen</span><span data-l="fr">Jouer</span></a>
+        </div>
+      </article>
+      <article class="game-card" data-game="stack">
+        <img class="gc-shot" src="assets/games/stack.jpg" alt="Hamster Stack: a tower of sunflower seed blocks" width="640" height="400" loading="lazy" decoding="async">
+        <div class="gc-body">
+          <h3>Hamster Stack</h3>
+          <p class="gc-tag"><span data-l="en">One-tap stacking</span><span data-l="de">Stapeln mit einem Tipp</span><span data-l="fr">Empilage en un tap</span></p>
+          <p class="gc-desc"><span data-l="en">One tap, one block: line them up and build the tallest seed tower.</span><span data-l="de">Ein Tipp, ein Block: stapel genau und bau den höchsten Kernturm.</span><span data-l="fr">Un tap, un bloc : aligne-les et construis la plus haute tour de graines.</span></p>
+          <p class="gc-best" data-best="stack"></p>
+          <a class="btn btn-primary gc-play" href="stack/" data-play="stack">▶ <span data-l="en">Play</span><span data-l="de">Spielen</span><span data-l="fr">Jouer</span></a>
+        </div>
+      </article>
+      <article class="game-card" data-game="dash">
+        <img class="gc-shot" src="assets/games/dash.jpg" alt="Hamster Dash: the hamster ball rolling down a toy track" width="640" height="400" loading="lazy" decoding="async">
+        <div class="gc-body">
+          <h3>Hamster Dash</h3>
+          <p class="gc-tag"><span data-l="en">Lane runner</span><span data-l="de">Spur-Runner</span><span data-l="fr">Course sur 3 voies</span></p>
+          <p class="gc-desc"><span data-l="en">Roll down the 3-lane track, dodge cats and traps, grab the seeds.</span><span data-l="de">Roll über die 3-spurige Bahn, weich Katzen und Fallen aus, sammle Kerne.</span><span data-l="fr">Roule sur la piste à 3 voies, évite chats et pièges, ramasse les graines.</span></p>
+          <p class="gc-best" data-best="dash"></p>
+          <a class="btn btn-primary gc-play" href="dash/" data-play="dash">▶ <span data-l="en">Play</span><span data-l="de">Spielen</span><span data-l="fr">Jouer</span></a>
+        </div>
+      </article>
+    </div>
+    <p class="games-note"><span data-l="en">🎈 Just a game for fun. No prizes, no rewards, no tokens to win. Best scores stay on this device.</span><span data-l="de">🎈 Nur ein Spiel zum Spaß. Keine Preise, keine Belohnungen, keine Tokens zu gewinnen. Bestwerte bleiben auf diesem Gerät.</span><span data-l="fr">🎈 Juste un jeu pour s’amuser. Pas de prix, pas de récompenses, aucun token à gagner. Les records restent sur cet appareil.</span></p>
   </section>
 
   <section class="game-section" id="play">
@@ -76,6 +127,7 @@
     <div class="hr-wrap" id="hr-wrap">
       <div class="hr-stage" id="hr-stage">
         <canvas id="hr-canvas" aria-label="Hamster Rocket game. Tap or press space to fly."></canvas>
+        <a class="hr-back" id="hr-back" href="#games" data-i18n-attr="aria-label|Back to all games|Zurück zu allen Spielen|Retour à tous les jeux" aria-label="Back to all games"><span aria-hidden="true">←</span> <span data-l="en">Games</span><span data-l="de">Spiele</span><span data-l="fr">Jeux</span></a>
         <button class="hr-mute" id="hr-mute" type="button" aria-label="Mute sound">🔊</button>
         <div class="hr-overlay" id="hr-start">
           <div class="card">

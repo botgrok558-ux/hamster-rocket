@@ -476,7 +476,7 @@
       const t = e.target; if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
       const map = { Space: 0, ArrowUp: 0, KeyW: 0, ArrowLeft: -1, KeyA: -1, ArrowRight: 1, KeyD: 1 };
       if (!(e.code in map)) { if (e.code === "Enter" && G.state === "over" && G.inView) { e.preventDefault(); restart(G.mode); } return; }
-      if (!G.inView && G.state !== "play") return;   // don't hijack page scrolling elsewhere
+      if (!G.inView && (G.state !== "play" || G.onScreen === false)) return;   // don't hijack page scrolling elsewhere (also not while a run is parked off-screen)
       if (t && t.tagName === "BUTTON" && e.code === "Space" && G.state === "over") return;
       e.preventDefault();
       if (G.state === "over") return;
@@ -570,7 +570,13 @@
   let last = 0;
   function frame(t) {
     const dt = Math.min(0.05, (t - last) / 1000 || 0); last = t;
-    G.update(dt); G.render();
+    if (G.onScreen === false) {   // game scrolled out of view (e.g. back to the games hub): freeze the run and silence the audio
+      if (Sound.ctx && Sound.ctx.state === "running") { Sound.ctx.suspend(); G.audioParked = true; }
+    } else {
+      if (G.audioParked && Sound.ctx && Sound.ctx.state === "suspended" && G.state === "play") Sound.ctx.resume();
+      G.audioParked = false;
+      G.update(dt); G.render();
+    }
     requestAnimationFrame(frame);
   }
 
@@ -592,7 +598,7 @@
     window.addEventListener("hr:lang", () => { updateStartCard(); syncMute(); if (G.state === "over") showGameOver(); });
     window.addEventListener("resize", resize);
     if (window.ResizeObserver) new ResizeObserver(resize).observe(G.el.wrap);
-    if (window.IntersectionObserver) new IntersectionObserver(es => { G.inView = es[0].isIntersecting && es[0].intersectionRatio > 0.45; }, { threshold: [0, 0.45, 0.8] }).observe(G.el.stage);
+    if (window.IntersectionObserver) new IntersectionObserver(es => { G.onScreen = es[0].isIntersecting; G.inView = es[0].isIntersecting && es[0].intersectionRatio > 0.45; }, { threshold: [0, 0.45, 0.8] }).observe(G.el.stage);
     else G.inView = true;
     $("go-again").addEventListener("click", () => restart("daily"));
     $("go-free").addEventListener("click", () => restart("free"));
