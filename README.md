@@ -4,7 +4,7 @@ Free browser mini-games starring a cartoon hamster. Works on mobile and PC, full
 
 Just a game for fun. No prizes, no rewards, no tokens to win.
 
-Play: https://botgrok558-ux.github.io/hamster-rocket-demo/
+Play: https://botgrok558-ux.github.io/hamster-rocket/
 
 ## Games
 | Game | Route | Best-score keys (localStorage) |

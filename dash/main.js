@@ -3,7 +3,7 @@
   "use strict";
   const $ = id => document.getElementById(id);
   const T = window.HRI18N ? HRI18N.scoped("dash") : (k, en) => en;   // shared site language, keys under "dash."
-  const SITE = "https://botgrok558-ux.github.io/hamster-rocket-demo/dash/";   // share link: this game on the Hamster Rocket site
+  const SITE = "https://botgrok558-ux.github.io/hamster-rocket/dash/";   // share link: this game on the Hamster Rocket site
   const REASON = { cat: "A cat caught you!", trap: "Snap! Mouse trap!", puddle: "Splash! You slipped in a puddle!" };
   const overlays = ["ov-start", "ov-pause", "ov-over"];
   const show = id => overlays.forEach(o => $(o).classList.toggle("hidden", o !== id));

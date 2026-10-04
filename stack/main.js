@@ -3,7 +3,7 @@
   "use strict";
   const $ = id => document.getElementById(id);
   const T = window.HRI18N ? HRI18N.scoped("stack") : (k, en) => en;   // shared site language, keys under "stack."
-  const SITE = "https://botgrok558-ux.github.io/hamster-rocket-demo/stack/";   // share link: this game on the Hamster Rocket site
+  const SITE = "https://botgrok558-ux.github.io/hamster-rocket/stack/";   // share link: this game on the Hamster Rocket site
   const overlays = ["ov-start", "ov-pause", "ov-over"];
   const show = id => overlays.forEach(o => $(o).classList.toggle("hidden", o !== id));
   let lastResult = null, overAt = 0;

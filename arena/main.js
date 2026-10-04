@@ -3,7 +3,7 @@
   "use strict";
   const $ = id => document.getElementById(id);
   const T = window.HRI18N ? HRI18N.scoped("arena") : (k, en) => en;   // shared site language, keys under "arena."
-  const SITE = "https://botgrok558-ux.github.io/hamster-rocket-demo/arena/";   // share link: this game on the Hamster Rocket site
+  const SITE = "https://botgrok558-ux.github.io/hamster-rocket/arena/";   // share link: this game on the Hamster Rocket site
   const params = new URLSearchParams(location.search);
   const t0 = Math.min(3600, Math.max(0, parseInt(params.get("t"), 10) || 0));   // ?t=SECONDS starts with the difficulty of that minute
   const bossNow = params.get("boss") === "1";                                    // ?boss=1 spawns the robo-cat right away
