@@ -49,3 +49,24 @@
   window.addEventListener("storage", render);
   render();
 })();
+
+/* CA block: copy the contract address (with a fallback for older browsers), shows "Copied!" for a moment. */
+(() => {
+  const T = (k, en) => (window.HRI18N ? HRI18N.t(k, en) : en);
+  function fallbackCopy(txt) {
+    const ta = document.createElement("textarea"); ta.value = txt; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;left:-9999px;top:0";
+    document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand("copy"); } catch (e) { } ta.remove(); return ok;
+  }
+  document.querySelectorAll("[data-copy-ca]").forEach(btn => {
+    let timer = 0;
+    btn.addEventListener("click", async () => {
+      const ca = btn.closest(".ca-block").querySelector("[data-ca]").textContent.trim();
+      let ok = false;
+      try { await navigator.clipboard.writeText(ca); ok = true; } catch (e) { ok = fallbackCopy(ca); }
+      if (!ok) { const r = document.createRange(); r.selectNodeContents(btn.closest(".ca-block").querySelector("[data-ca]")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); return; }
+      const lbl = btn.querySelector(".ca-copied"), txt = btn.querySelector(".ca-copy-txt");
+      lbl.textContent = "✓ " + T("ca.copied", "Copied!"); lbl.hidden = false; txt.hidden = true; btn.classList.add("is-copied");
+      clearTimeout(timer); timer = setTimeout(() => { lbl.hidden = true; txt.hidden = false; btn.classList.remove("is-copied"); }, 1800);
+    });
+  });
+})();

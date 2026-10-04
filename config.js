@@ -4,9 +4,9 @@
    =========================================================== */
 window.HR_CONFIG = {
   NAME: "Hamster Rocket",
-  TICKER: null,
-  CA: null,
-  PUMP_URL: null,
+  TICKER: "$HR",
+  CA: "5sb9aaWJvrpUWhhkHt3yqv4LAeXuUpU4MqWCbQoMpump",
+  PUMP_URL: "https://pump.fun/coin/5sb9aaWJvrpUWhhkHt3yqv4LAeXuUpU4MqWCbQoMpump",
   SITE_URL: "https://botgrok558-ux.github.io/hamster-rocket/", // used in share text + score card
   X_URL: "https://x.com/HamsterRocketX",
   TG_URL: null,

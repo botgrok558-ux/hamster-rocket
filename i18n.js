@@ -26,7 +26,7 @@
       "card.higher": "Fliegst du höher?",
       "share.text": "Ich habe {n} m in Hamster Rocket geschafft 🐹🚀{b} Schaffst du mehr?", "share.bonus": " (Glücksrad-Bonusflug)",
       "a11y.mute": "Ton aus", "a11y.unmute": "Ton an",
-      "hub.best": "Dein Bestwert", "hub.kills": "Gegner", "hub.blocks": "Blöcke", "hub.points": "Punkte"
+      "ca.copied": "Kopiert!", "hub.best": "Dein Bestwert", "hub.kills": "Gegner", "hub.blocks": "Blöcke", "hub.points": "Punkte"
     },
     fr: {
       "game.daily": "Défi du jour", "game.bestToday": "Ton record de la manche", "game.sameCourse": "Même parcours pour tout le monde. Nouveau parcours à", "game.yourTime": "ton heure",
@@ -43,7 +43,7 @@
       "card.higher": "Tu peux voler plus haut\u00a0?",
       "share.text": "J’ai fait {n} m dans Hamster Rocket 🐹🚀{b} Tu peux me battre\u00a0?", "share.bonus": " (partie bonus de la roue de la chance)",
       "a11y.mute": "Couper le son", "a11y.unmute": "Activer le son",
-      "hub.best": "Ton record", "hub.kills": "ennemis", "hub.blocks": "blocs", "hub.points": "points"
+      "ca.copied": "Copié\u00a0!", "hub.best": "Ton record", "hub.kills": "ennemis", "hub.blocks": "blocs", "hub.points": "points"
     }
   };
   /* Mini-games in the hub (arena/, stack/, dash/). Their keys live under a prefix ("arena.", "stack.", "dash.")
