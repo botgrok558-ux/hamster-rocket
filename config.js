@@ -1,6 +1,6 @@
 /* ===========================================================
    Hamster Rocket: site config.
-   Just a game for fun. No prizes, no rewards, no tokens to win.
+   Free to play. Rewards for the daily Top 5 are planned and not live yet. Best scores stay on this device.
    =========================================================== */
 window.HR_CONFIG = {
   NAME: "Hamster Rocket",

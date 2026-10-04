@@ -254,3 +254,27 @@ html:not([data-lang=de]) [data-l=de],html:not([data-lang=fr]) [data-l=fr],html[d
   background:rgba(255,255,255,.85);color:var(--ink);text-decoration:none;font:16px/1 "Luckiest Guy",system-ui,sans-serif;letter-spacing:.5px;-webkit-tap-highlight-color:transparent}
 .hr-back span[aria-hidden]{font:800 18px/1 system-ui,sans-serif;margin-top:-2px}
 .hr-back:active{transform:translateY(2px)}
+
+/* ---------- roadmap ---------- */
+.roadmap{max-width:900px;margin:0 auto;padding:56px 24px 40px;scroll-margin-top:var(--nav)}
+.rm-lead{margin:-6px 0 22px;color:#dcdcff}
+.rm-list{list-style:none;margin:0;padding:0;position:relative;display:grid;gap:18px}
+.rm-list::before{content:"";position:absolute;left:27px;top:28px;bottom:28px;width:4px;border-radius:2px;background:linear-gradient(180deg,var(--yellow),var(--cyan),var(--pink))}
+.rm-step{display:flex;align-items:center;gap:16px;position:relative;min-width:0}
+.rm-dot{flex:0 0 58px;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:28px;background:var(--yellow);border:4px solid var(--ink);box-shadow:0 5px 0 var(--ink);position:relative;z-index:1}
+.rm-step:nth-child(2) .rm-dot{background:var(--cyan)}.rm-step:nth-child(3) .rm-dot{background:#b9a6ff}.rm-step:nth-child(4) .rm-dot{background:var(--pink)}
+.rm-card{flex:1 1 auto;min-width:0;background:rgba(255,255,255,.96);color:var(--ink);border:4px solid var(--ink);border-radius:20px;box-shadow:0 7px 0 var(--ink);padding:12px 16px}
+.rm-phase{margin:0;font-family:"Luckiest Guy",system-ui,sans-serif;font-size:14px;letter-spacing:.8px;color:#c2185b}
+.rm-card h3{margin:2px 0 0;font-size:22px;line-height:1.2;color:var(--ink);overflow-wrap:anywhere}
+.rm-note{display:inline-block;margin:8px 0 0;padding:2px 10px;border-radius:999px;background:#fff0f4;border:2px dashed #ff6b81;color:#c2185b;font-weight:800;font-size:14px}
+.rm-foot{margin:22px 0 0}
+@media (max-width:600px){
+  .roadmap{padding:40px 14px 28px}
+  .rm-list{gap:14px}
+  .rm-list::before{left:21px}
+  .rm-step{gap:10px}
+  .rm-dot{flex-basis:46px;width:46px;height:46px;font-size:22px;border-width:3px;box-shadow:0 4px 0 var(--ink)}
+  .rm-card{padding:10px 12px;border-radius:16px;box-shadow:0 5px 0 var(--ink)}
+  .rm-card h3{font-size:18.5px}
+  .rm-note{font-size:13px}
+}
